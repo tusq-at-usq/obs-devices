@@ -31,10 +31,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #define _USE_MATH_DEFINES
-#include <math.h>
-#include <time.h>
 #include <jansson.h>
 #include <locale.h>
+#include <math.h>
+#include <time.h>
 
 #include "rs232/rs232.h"
 #include <unistd.h>
@@ -95,7 +95,6 @@ int main(int argc, char *argv[]) {
     exit(EXIT_FAILURE);
   }
 
-
   if (logFlag == 1) {
     printf("Logging enabled\n");
     /* Create a Log file */
@@ -123,8 +122,7 @@ int main(int argc, char *argv[]) {
   while (1) {
     if ((bytes_received = receive(an_decoder_pointer(&an_decoder),
                                   an_decoder_size(&an_decoder))) > 0) {
-      if (logFlag == 1)
-      {
+      if (logFlag == 1) {
         /* Log all binary data coming from the sensor, this can be converted to
          * CSV using the manager software */
         fwrite(an_decoder_pointer(&an_decoder), sizeof(uint8_t), bytes_received,
@@ -147,16 +145,31 @@ int main(int argc, char *argv[]) {
           if (decode_system_state_packet(&system_state_packet, an_packet) ==
               0) {
             json_t *obj = json_object();
-            json_object_set_new(obj, "Lat",     json_real(system_state_packet.latitude * RADIANS_TO_DEGREES));
-            json_object_set_new(obj, "Lon",     json_real(system_state_packet.longitude * RADIANS_TO_DEGREES));
-            json_object_set_new(obj, "Alt",     json_real(system_state_packet.height));
-            json_object_set_new(obj, "Roll",    json_real(system_state_packet.orientation[0] * RADIANS_TO_DEGREES));
-            json_object_set_new(obj, "Pitch",   json_real(system_state_packet.orientation[1] * RADIANS_TO_DEGREES));
-            json_object_set_new(obj, "Head",    json_real(system_state_packet.orientation[2] * RADIANS_TO_DEGREES));
+            json_object_set_new(
+                obj, "seconds",
+                json_real(system_state_packet.unix_time_seconds +
+                          system_state_packet.microseconds * 1e-6));
+            json_object_set_new(
+                obj, "Lat",
+                json_real(system_state_packet.latitude * RADIANS_TO_DEGREES));
+            json_object_set_new(
+                obj, "Lon",
+                json_real(system_state_packet.longitude * RADIANS_TO_DEGREES));
+            json_object_set_new(obj, "Alt",
+                                json_real(system_state_packet.height));
+            json_object_set_new(obj, "Roll",
+                                json_real(system_state_packet.orientation[0] *
+                                          RADIANS_TO_DEGREES));
+            json_object_set_new(obj, "Pitch",
+                                json_real(system_state_packet.orientation[1] *
+                                          RADIANS_TO_DEGREES));
+            json_object_set_new(obj, "Head",
+                                json_real(system_state_packet.orientation[2] *
+                                          RADIANS_TO_DEGREES));
 
             // dump compact (no spaces), then newline
             char *line = json_dumps(obj, JSON_COMPACT);
-            puts(line);                        // adds '\n'
+            puts(line); // adds '\n'
             fflush(stdout);
 
             free(line);
@@ -214,4 +227,3 @@ int an_packet_transmit(an_packet_t *an_packet) {
   an_packet_encode(an_packet);
   return transmit(an_packet_pointer(an_packet), an_packet_size(an_packet));
 }
-

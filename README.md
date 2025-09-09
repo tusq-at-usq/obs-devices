@@ -11,7 +11,7 @@ Emphasis is placed on:
 - Simplicity and human oversight
 - Low latency and event-driven (where possible)
 
-![TUI dashboard example]}(./docs/tui_example.png)
+![TUI dashboard example]}(docs/tui_example.png)
 
 ## Install
 Install should be completed by the bash script `install.sh`, but there are no guarentees of missing dependencies.

@@ -10,6 +10,10 @@ Emphasis is placed on:
 - Simplicity and human oversight
 - Low latency and event-driven (where possible)
 
+## Install
+Install should be completed by the bash script `install.sh`, but there are no guarentees of missing dependencies.
+If you find missing dependencies or broken links, please update the install script and submit a PR.
+
 ## Features
 - Installation and setup of environment, dependencies and permissions
 - Receive data from devices via systemctl daemon services and broadcast to ZMQ PUB sockets
@@ -17,8 +21,15 @@ Emphasis is placed on:
 - Log data to CSV files
 
 ## Devices
+- [Advanced Navigation Certus Mini D IMU](docs/certus.md)
 - [Local network Time Server](docs/ntp.md)
 - [Encoder board](docs/encoder.md)
-- [Advanced Navigation Certus Mini D IMU](docs/imu.md)
 
 
+## Device identification
+The most reliable way to identify a USB serial device is by the vendor and product ID (VID:PID).
+This an be queried by `$ lsusb` (although you will have to identify the device).
+Alternatively, query `$ dmesg | grep -1 usb` after plugging it in to see recent USB activity.
+The VID:PID is constant for device class, regardless of which individual device, PC, or port is used.
+This is much more reliable than speciying port directly, which are assigned dynamically.
+The VID:PID should be specified in the YAML file for each decice - defaults are included for known devices.

@@ -1,0 +1,20 @@
+# Global settings are optional
+
+channels:
+  - name: Certus IMU
+    address: ipc:///tmp/imu.sock
+    topic: ""
+
+  - name: Encoder
+    address: ipc:///tmp/encoder.sock
+    topic: ""
+
+# Time check
+check_time: true
+
+# Disks
+check_disks:
+  - path: /
+    warning: 100 # GB
+    critical: 20 # GB
+

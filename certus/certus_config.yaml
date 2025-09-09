@@ -1,0 +1,8 @@
+log_raw: false
+log_dir: "./idd_logs/"
+log_max_rows: 100000 # Max rows to prevent log files that are too large
+protocol: "IPC" # IPC or "TCP" if acrss multiple computers
+address: "/tmp/imu.sock" # or e.g. "*:5000" for TCP
+baudrate: 115200 # Certus defalt
+vidpid: "0403:6001" # Certus Mini D
+

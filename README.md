@@ -25,6 +25,12 @@ If you find missing dependencies or broken links, please update the install scri
 - [Local network Time Server](docs/ntp.md)
 - [Encoder board](docs/encoder.md)
 
+# Networking
+This repository makes use of ZMQ for inter-process communication, for various reasons (including allowing true multi-threading).
+Device monitor scripts broadcast data as PUB sockets, and other users can extract this data as SUB sockets.
+When this is only done on a single local machine the IPC protocol is reocmmended.
+When mutliple machines are used, TCP is required.
+The protocol and address can be specified in the YAML config files for each device.
 
 ## Device identification
 The most reliable way to identify a USB serial device is by the vendor and product ID (VID:PID).

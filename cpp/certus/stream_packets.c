@@ -146,7 +146,7 @@ int main(int argc, char *argv[]) {
               0) {
             json_t *obj = json_object();
             json_object_set_new(
-                obj, "seconds",
+                obj, "Sec",
                 json_real(system_state_packet.unix_time_seconds +
                           system_state_packet.microseconds * 1e-6));
             json_object_set_new(

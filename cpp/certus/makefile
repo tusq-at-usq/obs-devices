@@ -2,6 +2,7 @@ LIBRARIES=
 ifeq ($(OS),Windows_NT)
 	LIBRARIES += -lWs2_32
 endif
+LIBRARIES += -ljansson
 
 all: stream_packets
 

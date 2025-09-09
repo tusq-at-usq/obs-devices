@@ -4,6 +4,7 @@ Software to receive, process, broadcast, log, and monitor data from external (no
 - Time server sources
 - Encoders
 - IMUs
+- Local disk storage
 
 Emphasis is placed on:
 - Reliability and robustness
@@ -16,8 +17,9 @@ If you find missing dependencies or broken links, please update the install scri
 
 ## Features
 - Installation and setup of environment, dependencies and permissions
-- Receive data from devices via systemctl daemon services and broadcast to ZMQ PUB sockets
-- Monitor the status of devices via a TUI dashboard
+- Receive data from devices, log, and broadcast to ZMQ PUB sockets
+- Monitor the behavior of cameras via ZMQ health broadcast messages
+- Monitor the status of devices, time offset, and disk space via a TUI dashboard
 - Log data to CSV files
 
 ## Devices

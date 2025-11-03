@@ -58,7 +58,7 @@ install_nvim() {
         echo 'export PATH="$PATH:/opt/nvim-linux-x86_64/bin"' >> ~/.bashrc
     fi 
     # Copy nice nvim settings to .config directory
-    sudo cp -r ./pc_config/nvim ~/.config/ && nvim -c ':exe "normal iPress :q! <ENTER> when install finished. Note font will look odd until reboot"'
+    sudo cp -r ./nvim ~/.config/ && nvim -c ':exe "normal iPress :q! <ENTER> when install finished. Note font will look odd until reboot"'
 
     if [ $(cat ~/.bashrc | grep -i 'alias vim' | wc -l) -eq 0 ]
     then
@@ -74,8 +74,7 @@ install_nvim() {
 }
 
 install_vscode() {
-  echo "code code/add-microsoft-repo boolean true" | sudo debconf-set-selections
-  sudo apt install code
+  snap install --classic code
 }
 
 

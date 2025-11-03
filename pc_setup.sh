@@ -37,7 +37,7 @@ install_jetbrains_fonts() {
 install_system_pkg_dependencies() {
     # Overheads
     sudo apt update -y && 
-    sudo apt install -y curl build-essential python3-venv python3-pip chrony uv 
+    sudo apt install -y curl build-essential python3-venv python3-pip chrony
 }
 
 install_nvim() {
@@ -51,10 +51,9 @@ install_nvim() {
         sudo tar -C /opt -xzf nvim-linux-x86_64.tar.gz
         export PATH="$PATH:/opt/nvim-linux-x86_64/bin"
         echo 'export PATH="$PATH:/opt/nvim-linux-x86_64/bin"' >> ~/.bashrc
-
-        # Copy nice nvim settings to .config directory
-        sudo cp -r ./pc_config/lua ~/.config/nvim && nvim -c ':exe "normal iPress :q! <ENTER> when install finished. Note font will look odd until reboot"'
-    fi
+    fi 
+    # Copy nice nvim settings to .config directory
+    sudo cp -r ./pc_config/lua ~/.config/nvim/lua && nvim -c ':exe "normal iPress :q! <ENTER> when install finished. Note font will look odd until reboot"'
 
     if [ $(cat ~/.bashrc | grep -i 'alias vim' | wc -l) -eq 0 ]
     then
@@ -63,7 +62,6 @@ install_nvim() {
         echo "alias la='ls -A'" >> ~/.bashrc
         echo "alias l='ls -CF'" >> ~/.bashrc
         echo "alias py=python3" >> ~/.bashrc
-        echo "alias ur=uv run" >> ~/.bashrc
         echo "Added nvim alias to $HOME/.bashrc"
     else
         echo "Did not add nvim alias to $HOME/.bashrc"

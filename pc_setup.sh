@@ -53,7 +53,7 @@ install_nvim() {
         echo 'export PATH="$PATH:/opt/nvim-linux-x86_64/bin"' >> ~/.bashrc
     fi 
     # Copy nice nvim settings to .config directory
-    sudo cp -r ./pc_config/nvim ~/.config/nvim && nvim -c ':exe "normal iPress :q! <ENTER> when install finished. Note font will look odd until reboot"'
+    sudo cp -r ./pc_config/nvim ~/.config/ && nvim -c ':exe "normal iPress :q! <ENTER> when install finished. Note font will look odd until reboot"'
 
     if [ $(cat ~/.bashrc | grep -i 'alias vim' | wc -l) -eq 0 ]
     then

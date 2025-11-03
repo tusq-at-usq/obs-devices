@@ -1,6 +1,5 @@
 import pyudev
 
-
 def show_current_vidpid() -> None:
     """Show VID:PID of connected USB devices."""
     context = pyudev.Context()

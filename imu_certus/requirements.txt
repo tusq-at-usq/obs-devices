@@ -1,6 +1,0 @@
-pyYaml
-pyzmq
-pyserial-asyncio
-pyudev
-uvloop
-rich

@@ -2,7 +2,7 @@
 
 # Install dependencies
 sudo apt-get update
-sudo apt-get install -y build-essential cmake libssl-dev libboost-all-dev
+sudo apt-get install -y build-essential cmake libssl-dev libboost-all-dev libjansson-dev
 openjdk-11-jdk
 
 # Download and set up Certus Mini Manager

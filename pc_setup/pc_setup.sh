@@ -31,7 +31,7 @@ install_jetbrains_fonts() {
         && unzip JetBrainsMono.zip \
         && rm JetBrainsMono.zip \
         && sudo fc-cache -fv ~/.local/share/fonts
-        dconf load /org/gnome/terminal/legacy/profiles:/ < ~/Varda-W2-DAQ/ground/setup/gnome-terminal-profiles.dconf
+        dconf load /org/gnome/terminal/legacy/profiles:/ < ./gnome-terminal-profiles.dconf
         cd ~/Varda-W2-DAQ/ground/setup
     else
         echo "Skipping JetBrains Nerd font install as they already exist in $HOME/.local/share/fonts"
@@ -48,6 +48,15 @@ install_python_packages() {
     pip install --upgrade pip
     pip install uv
     uv pip install ~/obs-utils/.
+}
+
+create_config_dir() {
+    if [ ! -d $HOME/obs-config ]
+    then
+        mkdir $HOME/obs-config
+        cp ./../tui/config.yaml $HOME/obs-config/tui_default_config.yaml
+    else
+    fi
 }
 
 install_nvim() {

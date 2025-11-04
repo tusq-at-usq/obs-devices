@@ -32,7 +32,6 @@ install_jetbrains_fonts() {
         && rm JetBrainsMono.zip \
         && sudo fc-cache -fv ~/.local/share/fonts
         dconf load /org/gnome/terminal/legacy/profiles:/ < ./gnome-terminal-profiles.dconf
-        cd ~/Varda-W2-DAQ/ground/setup
     else
         echo "Skipping JetBrains Nerd font install as they already exist in $HOME/.local/share/fonts"
     fi

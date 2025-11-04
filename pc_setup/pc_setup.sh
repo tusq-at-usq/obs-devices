@@ -56,6 +56,7 @@ create_config_dir() {
         mkdir $HOME/obs-config
         cp ./../tui/config.yaml $HOME/obs-config/tui_default_config.yaml
     else
+        echo "$HOME/obs-config already exists, skipping creation"
     fi
 }
 

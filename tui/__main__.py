@@ -10,7 +10,7 @@ def main():
         "--config",
         type=Path,
         required=False,
-        default=Path(Path.home(), "obs-default-config.yaml"),
+        default=Path(Path.home(), "obs-config/tui-default-config.yaml"),
         help="Path to the configuration file",
     )
     args = p.parse_args()

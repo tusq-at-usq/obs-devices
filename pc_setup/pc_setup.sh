@@ -101,5 +101,6 @@ sudo timedatectl set-timezone UTC
 install_jetbrains_fonts
 install_system_pkg_dependencies
 install_python_packages
+create_config_dir
 install_nvim
 install_vscode

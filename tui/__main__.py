@@ -1,3 +1,4 @@
+import sys
 import argparse
 from pathlib import Path
 from .tui import HealthApp
@@ -18,4 +19,7 @@ def main():
 
 
 if __name__ == "__main__":
+    _ = sys.stdout.write(f"\33]0;{'Obs TUI Monitor'}\a")
+    _ = sys.stdout.flush()
+
     main()

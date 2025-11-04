@@ -17,7 +17,6 @@ EOF
     fi
     source ~/.env/obs/bin/activate
     pip install --upgrade pip
-    pip install uv
 
 
 }
@@ -43,6 +42,12 @@ install_system_pkg_dependencies() {
     # Overheads
     sudo apt update -y && 
     sudo apt install -y curl build-essential python3-venv python3-pip chrony
+}
+
+install_python_packages() {
+    pip install --upgrade pip
+    pip install uv
+    uv pip install ~/obs-utils/.
 }
 
 install_nvim() {
@@ -85,5 +90,6 @@ build_python_venv
 sudo timedatectl set-timezone UTC
 install_jetbrains_fonts
 install_system_pkg_dependencies
+install_python_packages
 install_nvim
 install_vscode

@@ -3,6 +3,9 @@
 *.pyc
 *.pyo
 *.pyd
+*.egg-info/
 
 # Compiled C code
 cpp/certus/stream_packets
+
+build/**

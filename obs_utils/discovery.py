@@ -37,6 +37,18 @@ def port_by_vidpid(vidpid: str) -> str | None:
                 return device.device_node.split("/")[-1]
     return None
 
+def port_by_serial(serial: str) -> str | None:
+    """Return /dev/tty* port for given USB serial number."""
+    context = pyudev.Context()
+    for device in context.list_devices(subsystem="tty"):
+        parent = device.find_parent("usb", "usb_device")
+        if parent is None:
+            continue
+        if parent.get("ID_SERIAL_SHORT"):
+            if parent.get("ID_SERIAL_SHORT") == serial:
+                return device.device_node.split("/")[-1]
+    return None
+
 
 if __name__ == "__main__":
     show_current_vidpid()

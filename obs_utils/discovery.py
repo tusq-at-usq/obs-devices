@@ -1,4 +1,5 @@
 import pyudev
+from typing import Sequence
 
 def show_current_vidpid() -> None:
     """Show VID:PID of connected USB devices."""
@@ -49,7 +50,17 @@ def port_by_serial(serial: str) -> str | None:
                 return device.device_node.split("/")[-1]
     return None
 
+def port_serial_search(serials: Sequence[str]) -> str | None:
+    """ Search for a port from a tuple of serial numbers."""
+    for serial in serials:
+        port = port_by_serial(serial)
+        if port is not None:
+            return port
+    return None
 
-if __name__ == "__main__":
+def __main__():
     show_current_vidpid()
     show_current_serials()
+
+if __name__ == "__main__":
+    __main__()

@@ -59,8 +59,8 @@ def port_serial_search(serials: Sequence[str]) -> str | None:
     return None
 
 def print_search():
-    print(show_current_vidpid())
-    print(show_current_serials())
+    show_current_vidpid()
+    show_current_serials()
 
 if __name__ == "__main__":
     print_search()

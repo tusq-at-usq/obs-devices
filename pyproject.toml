@@ -19,4 +19,4 @@ packages = ["obs_utils", "tui"]
 
 [project.scripts]
 obs-tui = "tui.__main__:main"
-obs-show-devices = "obs_utils.discovery:main"
+obs-show-devices = "obs_utils.discovery:print_search"

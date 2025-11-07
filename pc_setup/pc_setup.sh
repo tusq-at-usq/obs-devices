@@ -91,6 +91,19 @@ install_vscode() {
   snap install --classic code
 }
 
+set_permissions() {
+  sudo usermod -aG dialout $USER
+}
+
+reboot_on_confirm() {
+  read -p "Setup complete. Reboot required for permission to take effect. Reboot now? (y/n): " choice
+  case "$choice" in 
+    y|Y ) echo "Rebooting..."; sudo reboot;;
+    n|N ) echo "Reboot cancelled. Please reboot later to apply all changes.";;
+    * ) echo "Invalid input. Please enter y or n.";;
+  esac
+}
+
 
 sudo apt update
 sudo apt upgrade
@@ -103,3 +116,5 @@ install_python_packages
 create_config_dir
 install_nvim
 install_vscode
+set_permissions
+reboot_on_confirm

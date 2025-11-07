@@ -17,7 +17,7 @@ def main():
     )
     args = p.parse_args()
 
-    _ = sys.stdout.write(f"\33]0;{'Obs TUI Monitor'}\a")
+    _ = sys.stdout.write(f"\33]0;{'Obs Health Monitor'}\a")
     _ = sys.stdout.flush()
 
     HealthApp(args.config).run()

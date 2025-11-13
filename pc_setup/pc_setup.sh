@@ -91,6 +91,15 @@ install_vscode() {
   snap install --classic code
 }
 
+install_other_repos() {
+  mydir="$(pwd)"
+  cd $HOME
+  git clone https://github.com/tusq-at-usq/obs-encoders
+  git clone https://github.com/tusq-at-usq/obs-certus
+  git clone https://github.com/tusq-at-usq/obs-cameras
+  
+}
+
 set_permissions() {
   sudo usermod -aG dialout $USER
 }

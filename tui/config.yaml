@@ -6,7 +6,7 @@ channels:
     topic: ""
 
   - name: Encoder
-    address: ipc:///tmp/encoder.sock
+    address: ipc:///tmp/encoders.sock
     topic: ""
 
 # Time check
@@ -15,6 +15,6 @@ check_time: true
 # Disks
 check_disks:
   - path: /
-    warning: 100 # GB
-    critical: 20 # GB
+    warning: 150 # GB
+    critical: 50 # GB
 

@@ -97,6 +97,7 @@ install_other_repos() {
   git clone https://github.com/tusq-at-usq/obs-encoders
   git clone https://github.com/tusq-at-usq/obs-certus
   git clone https://github.com/tusq-at-usq/obs-cameras
+  cd mydir
   
 }
 
@@ -125,5 +126,6 @@ install_python_packages
 create_config_dir
 install_nvim
 install_vscode
+install_other_repos
 set_permissions
 reboot_on_confirm

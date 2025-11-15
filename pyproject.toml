@@ -12,11 +12,30 @@ dependencies = [
     "pyzmq>=27.1.0",
     "rich>=14.2.0",
     "uvloop>=0.22.1",
+    "astrix[jax]",
+    "numpy>=2.3.4",
+    "opencv-contrib-python>=4.11.0.86",
+    "pyqt6>=6.10.0",
+    "pyqtgraph>=0.13.7",
+    "vmbpy[numpy,opencv]",
 ]
 
 [tool.setuptools]
-packages = ["obs_utils", "tui"]
+packages = ["obs_utils", "obs_tui", "obs_certus", "obs_encoders", "obs_display", "obs_overlay", "obs_cameras"]
 
 [project.scripts]
 obs-tui = "tui.__main__:main"
 obs-show-devices = "obs_utils.discovery:print_search"
+obs-certus = "obs_certus.__main__:main"
+obs-encoders = "obs_encoders.__main__:main"
+
+[tool.uv.sources]
+vmbpy = { url = "https://github.com/alliedvision/VmbPy/releases/download/1.2.0/vmbpy-1.2.0-py3-none-manylinux_2_27_x86_64.whl" }
+astrix = { git = "https://github.com/andrewjlock/astrix.git" }
+
+[tool.basedpyright]
+typeCheckingMode = "standard"
+reportIgnoreCommentWithoutRule = false
+
+[tool.setuptools.package-data]
+"obs_certus" = ["cpp/*"]

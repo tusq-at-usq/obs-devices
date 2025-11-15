@@ -1,5 +1,8 @@
 #!/bin/bash
 
+CWD="$(pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 build_python_venv() {
     if [ -d $HOME/.env ]
     then
@@ -17,10 +20,7 @@ EOF
     fi
     source ~/.env/obs/bin/activate
     pip install --upgrade pip
-
-
 }
-
 
 install_jetbrains_fonts() {
     JET_BRAINS_FONTS=$(ls ~/.local/share/fonts/JetBrains*Nerd* | wc -l)
@@ -32,6 +32,7 @@ install_jetbrains_fonts() {
         && rm JetBrainsMono.zip \
         && sudo fc-cache -fv ~/.local/share/fonts
         dconf load /org/gnome/terminal/legacy/profiles:/ < ./gnome-terminal-profiles.dconf
+        cd "$CWD"
     else
         echo "Skipping JetBrains Nerd font install as they already exist in $HOME/.local/share/fonts"
     fi
@@ -46,17 +47,17 @@ install_system_pkg_dependencies() {
 install_python_packages() {
     pip install --upgrade pip
     pip install uv
-    uv pip install ~/obs-utils/.
+    uv pip install $SCRIPT_DIR
 }
 
 create_config_dir() {
     if [ ! -d $HOME/obs-config ]
     then
         mkdir $HOME/obs-config
-        cp ./../tui/config.yaml $HOME/obs-config/tui_default_config.yaml
     else
         echo "$HOME/obs-config already exists, skipping creation"
     fi
+    cp ./../obs_tui/config.yaml $HOME/obs-config/tui_default_config.yaml
 }
 
 install_nvim() {
@@ -72,15 +73,17 @@ install_nvim() {
         echo 'export PATH="$PATH:/opt/nvim-linux-x86_64/bin"' >> ~/.bashrc
     fi 
     # Copy nice nvim settings to .config directory
-    sudo cp -r ./nvim ~/.config/ && nvim -c ':exe "normal iPress :q! <ENTER> when install finished. Note font will look odd until reboot"'
+    sudo cp -r "$SCRIPT_DIR"/pc_setup/nvim ~/.config/ && nvim -c ':exe "normal iPress :q! <ENTER> when install finished. Note font will look odd until reboot"'
 
     if [ $(cat ~/.bashrc | grep -i 'alias vim' | wc -l) -eq 0 ]
     then
         echo "alias vim=nvim" >> ~/.bashrc
+        echo "alias vi=nvim" >> ~/.bashrc
         echo "alias ll='ls -alF'" >> ~/.bashrc
         echo "alias la='ls -A'" >> ~/.bashrc
         echo "alias l='ls -CF'" >> ~/.bashrc
         echo "alias py=python3" >> ~/.bashrc
+        echo "alias ur='uv run'" >> ~/.bashrc
         echo "Added nvim alias to $HOME/.bashrc"
     else
         echo "Did not add nvim alias to $HOME/.bashrc"
@@ -91,18 +94,19 @@ install_vscode() {
   snap install --classic code
 }
 
-install_other_repos() {
-  mydir="$(pwd)"
-  cd $HOME
-  git clone https://github.com/tusq-at-usq/obs-encoders
-  git clone https://github.com/tusq-at-usq/obs-certus
-  git clone https://github.com/tusq-at-usq/obs-cameras
-  cd mydir
-  
-}
 
 set_permissions() {
   sudo usermod -aG dialout $USER
+}
+
+add_tserver_to_chrony_sources() {
+  if ! grep -q "192.168.1.4" /etc/chrony/chrony.conf; then
+    echo "Adding time server (192.168.1.4) to chrony sources"
+    echo "server 192.168.1.4 iburst trust prefer" | sudo tee -a /etc/chrony/chrony.conf
+    sudo systemctl restart chrony
+  else
+    echo "Time server already present in chrony sources, skipping"
+  fi
 }
 
 reboot_on_confirm() {
@@ -119,13 +123,17 @@ sudo apt update
 sudo apt upgrade
 build_python_venv
 # Set timezone to UTC
-sudo timedatectl set-timezone UTC
+# sudo timedatectl set-timezone UTC
 install_jetbrains_fonts
 install_system_pkg_dependencies
 install_python_packages
 create_config_dir
 install_nvim
 install_vscode
-install_other_repos
 set_permissions
-reboot_on_confirm
+add_tserver_to_chrony_sources
+if [[ -t 1 ]]; then
+  reboot_on_confirm
+else
+  echo "Don't forget to reboot the system later to apply all changes."
+fi

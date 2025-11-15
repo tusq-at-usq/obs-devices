@@ -113,7 +113,7 @@ class CertusMonitor(threading.Thread):
     _context: zmq.Context
     _socket: zmq.Socket
     rot_fixed: Rotation
-    _euler_offset: tuple[float, float, float] | None
+    _euler_offset: tuple[float, float, float]
     _kill_event: threading.Event
     _sinks: list[IMUSink] | None
 
@@ -126,7 +126,7 @@ class CertusMonitor(threading.Thread):
         with open(config_filepath, "r") as f:
             self._config = yaml.safe_load(f)
         self._euler_offset = self._config.get("euler_offset", None)
-        if self._euler_offset is None:
+        if self._euler_offset is not None:
             self.rot_fixed = Rotation.from_euler(
                 "ZYX", jnp.array(self._euler_offset), degrees=True
             )

@@ -151,7 +151,7 @@ class GimbalRecv(threading.Thread):
             self._context = ctx
             self._own_context = False
         self._pos_socket = self._context.socket(zmq.SUB)
-        self._pos_socket.setsockopt(zmq.RCVTIMEO, 100)  # 500ms timeout on reply
+        self._pos_socket.setsockopt(zmq.RCVTIMEO, 200)  # 500ms timeout on reply
         self._pos_socket.setsockopt(zmq.CONFLATE, 1)  # Only want most recent command
         self._pos_socket.subscribe("P")
         self._pos_socket.connect("tcp://scoti.local:60000")
@@ -225,7 +225,7 @@ class GimbalSend(threading.Thread):
             self._own_context = False
         self._speed_set_socket = self._context.socket(zmq.REQ)
         self._speed_set_socket.setsockopt(zmq.RCVTIMEO, 200)  # 200ms timeout on reply
-        self._speed_set_socket.connect("tcp://scoti.local:60001")
+        self._speed_set_socket.connect("tcp://scoti.local:60004")
 
     def set_limit(self, axis: str, end: str) -> None:
         """
@@ -316,10 +316,18 @@ class GimbalSend(threading.Thread):
         """
         # Safety check that in manual mode
         if self.mode == "manual":
+            warnings.warn("Cannot send speed command in non-manual mode")
+        else:
             self._msg_queue.put(f"S,A{az_speed:.3f},E{el_speed:.3f}")
             self._new_msg_event.set()
-        else:
-            warnings.warn("Cannot send speed command in non-manual mode")
+            self._state.update_from_send(
+                GimbalState(
+                    u_az = az_speed,
+                    u_el = el_speed,
+                    _mode=self.mode,
+                    t_cmd_update=time.time(),
+                )
+            )
 
     def _send_command(self, command: str) -> bool:
         """
@@ -394,7 +402,7 @@ class GimbPIController(threading.Thread):
     ):
         super().__init__()
         self.Kp = 1.0
-        self.Ki = 0.2
+        self.Ki = 0.05
         self.deadband = 0.1
         self.integral_error = np.zeros(2)
         self._target = target
@@ -410,12 +418,17 @@ class GimbPIController(threading.Thread):
             self._imu_state = imu_state
             self._update_event.set()
 
+    @staticmethod
+    def angle_diff_deg(a: float | NDArray, b: float | NDArray) -> float | NDArray:
+        d = (a - b + 180) % 360 - 180
+        return d
+
     def update_control(self) -> dict[str, NDArray | list[float]]:
         with self._lock:
             hp_imu = self._imu_state.hpr[0:2]
             t_imu = self._imu_state.t_imu
         hp_target = self._target.get_head_pitch(t_imu)
-        error = np.array(hp_target) - hp_imu
+        error = self.angle_diff_deg(np.array(hp_target), hp_imu)
         error[np.abs(error) < self.deadband] = 0.0
         dt = t_imu - self._prev_t
         self.integral_error += error * dt
@@ -459,12 +472,19 @@ class GimbalController:
     _gimbal_recv_thread: GimbalRecv
     _gimbal_send_thread: GimbalSend
     _gimbal_pi_thread: GimbPIController
+    _ctx: zmq.Context
 
     _kill_switch: threading.Event
 
-    def __init__(self, target: Target):
+    def set_imu_state(self, imu_state: IMUState) -> None:
+        self._gimbal_pi_thread.new_data(imu_state)
+
+    def set_mode(self, mode: str) -> None:
+        self._gimbal_send_thread.set_mode(mode)
+
+    def __init__(self, target: Target, sink: GimbalSink | None = None):
         self._gimbal_state = shared_gimbal_state
-        self._gimbal_recv_thread = GimbalRecv(state=self._gimbal_state)
+        self._gimbal_recv_thread = GimbalRecv(state=self._gimbal_state, sink=sink)
         self._gimbal_send_thread = GimbalSend(state=self._gimbal_state)
         self._gimbal_pi_thread = GimbPIController(
             target=target,
@@ -474,9 +494,9 @@ class GimbalController:
         self._kill_switch = threading.Event()
 
     def __enter__(self):
-        ctx = zmq.Context()
-        self._gimbal_recv_thread.connect(ctx)
-        self._gimbal_send_thread.connect(ctx)
+        self._ctx = zmq.Context()
+        self._gimbal_recv_thread.connect(self._ctx)
+        self._gimbal_send_thread.connect(self._ctx)
         self._gimbal_recv_thread.start()
         self._gimbal_send_thread.start()
         self._gimbal_pi_thread.start()
@@ -489,3 +509,5 @@ class GimbalController:
         self._gimbal_recv_thread.join()
         self._gimbal_send_thread.join()
         self._gimbal_pi_thread.join()
+        self._ctx.term()
+        

@@ -19,10 +19,10 @@ import astrix as at
 def main():
 
     # Create objects from data
-    path_nom = read_varda_traj(
-        "~/Projects/obs/varda-w4/planning/data/W4_Nominal_ECEF.csv",
-        test_time_adjustment=True,
-    )
+    # path_nom = read_varda_traj(
+    #     "~/varda-w4/planning/data/W4_Nominal_ECEF.csv",
+    #     test_time_adjustment=True,
+    # )
     # pt_GS2 = at.Point.from_geodet([-32.150517, 133.689040, 10])
     pt_Bledisloe = at.Point.from_geodet([-27.511726, 153.0249, 10])
     alv811_25_mod = at.FixedZoomCamera(
@@ -32,17 +32,27 @@ def main():
     # Instantiate state and monitors
     state = State()
     state_plotter = StatePlotter(state=state, interval=0.5)
-    imu_monitor = CertusMonitor(sink=state.set_imu_state)
+    target = SkyTarget("Canopus", pt_Bledisloe, alv811_25_mod)
+    gimbal_controller = GimbalController(target, sink=state.set_gimbal_state)
+    imu_monitor = CertusMonitor(sink=[state.set_imu_state, gimbal_controller.set_imu_state])
     # controller = Controller(sink=state.set_controller_state)
     # context = Context(
     #     imu_monitor=imu_monitor,
     #     controller=controller,
     # )
 
-    target = SkyTarget("Canopus", pt_Bledisloe, alv811_25_mod)
-    head, pitch = target.get_head_pitch(time.time())
-    print("Head:", head)
-    print("Pitch:", pitch)
+    context = Context(imu_monitor=imu_monitor, controller=gimbal_controller)
+
+    with context:
+        gimbal_controller.set_mode("tracking")
+        state_plotter.run()
+        input("Press Enter to continue...")
+        state_plotter.stop()
+
+
+    # head, pitch = target.get_head_pitch(time.time())
+    # print("Head:", head)
+    # print("Pitch:", pitch)
 
 
 

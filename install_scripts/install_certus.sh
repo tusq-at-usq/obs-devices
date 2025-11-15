@@ -16,7 +16,7 @@ sudo apt install temurin-11-jre
 
 
 # Download and set up Certus Mini Manager
-curl -LO https://www.advancednavigation.com/downloads/latest/certus-mini-d/CertusMiniManager-7.5.zip -o ~/CertusMiniManager-7.5.zip
+curl -L https://www.advancednavigation.com/downloads/latest/certus-mini-d/CertusMiniManager-7.5.zip -o ~/CertusMiniManager-7.5.zip
 unzip ~/CertusMiniManager-7.5.zip -d ~/CertusMiniManager
 rm ~/CertusMiniManager-7.5.zip
 

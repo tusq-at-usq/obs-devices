@@ -7,7 +7,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # # None
 
 mkdir -p ~/obs-config
-cp "$SCRIPT_DIR/../config/default_config.yaml ~/obs-config/encoders_config.yaml"
+cp "$SCRIPT_DIR"/../config/default_encoders_config.yaml ~/obs-config/encoders_config.yaml
 
 
 

@@ -8,11 +8,9 @@ import warnings
 from dataclasses import dataclass
 import datetime
 from numpy.typing import NDArray
-from contextlib import nullcontext
+import time
 
 from obs_cameras.base import CameraStream
-from obs_encoders.monitor import EncoderMonitor
-from obs_certus.monitor import CertusMonitor
 from obs_target.target import Target
 from obs_utils.context import Context, State
 
@@ -73,6 +71,7 @@ class Display:
 
         self._disp_lock = threading.RLock()
         self._kill_event = threading.Event()
+        self._new_stream_event = threading.Event()
         self._disp_set = DisplaySettings()
 
         self.app = pg.Qt.mkQApp(name="Video-stream")
@@ -93,6 +92,7 @@ class Display:
         save_queue = pg.TextItem()
         time_lab = pg.TextItem()
         gimb_angles_lab = pg.TextItem()
+        target_angles_lab = pg.TextItem()
         imu_angles_lab = pg.TextItem()
         orient_cal_lab = pg.TextItem()
         track_alt_lab = pg.TextItem()
@@ -107,6 +107,7 @@ class Display:
         self.p1.addItem(save_queue)
         self.p1.addItem(time_lab)
         self.p1.addItem(gimb_angles_lab)
+        self.p1.addItem(target_angles_lab)
         self.p1.addItem(imu_angles_lab)
         self.p1.addItem(orient_cal_lab)
         self.p1.addItem(track_alt_lab)
@@ -122,6 +123,7 @@ class Display:
             "Time": time_lab,
             "GIM": gimb_angles_lab,
             "IMU": imu_angles_lab,
+            "TAR": target_angles_lab,
             "TrackAlt": track_alt_lab,
         }
 
@@ -143,7 +145,6 @@ class Display:
 
     def on_key(self, ev: QtGui.QKeyEvent):
         txt = ev.text()
-        print(f"Key pressed: {txt}")
         if txt in ["s", "S"]:
             self._stream.save_enabled = not self._stream.save_enabled
         if txt == "G":
@@ -267,6 +268,10 @@ class Display:
         self.labs["IMU"].setPos(*rescale(-300, 55))
         self.labs["IMU"].setFont(QtGui.QFont("monospace", 11, 700))
         self.labs["IMU"].setColor("g")
+
+        self.labs["TAR"].setPos(*rescale(-300, 80))
+        self.labs["TAR"].setFont(QtGui.QFont("monospace", 11, 150))
+        self.labs["TAR"].setColor("r")
 
         self.labs["TrackAlt"].setPos(*rescale(-300, 90))
         self.labs["TrackAlt"].setFont(QtGui.QFont("monospace", 11, 150))
@@ -427,6 +432,7 @@ class Display:
         )
 
     def run(self):
+        time.sleep(1)  # Allow some time for everything to start
         try:
             while not self._kill_event.is_set():
                 if self._new_stream_event.is_set():
@@ -447,16 +453,28 @@ class Display:
                             frame.timestamp, tz=datetime.timezone.utc
                         ).strftime("%H:%M:%S.%f")[:-5],
                     }
+                    if self._target is not None:
+                        try:
+                            hp = self._target.get_head_pitch(frame.timestamp)
+                            lab_data["TAR"] = f"Head {hp[0]:.2f} Pitch {hp[1]:.2f}"
+                        except Exception as e:
+                            warnings.warn(f"Could not get target data: {e}")
+                            pass
                     if self._ctx.has_imu_monitor:
                         try:
-                            euler = self._state.extrap_imu_state(frame.timestamp).hpr
+                            # euler = self._state.extrap_imu_state(frame.timestamp).hpr
+                            euler = self._state.imu_state.hpr
                             lab_data["IMU"] = (
                                 f"Head {euler[0]:.2f} Pitch {euler[1]:.2f}"
                             )
-                            if self._target is not None:
-                                self.update_tracking(self._target, frame.timestamp, np.array(euler))
+                            # if self._target is not None:
+                            #     self.update_tracking(self._target, frame.timestamp, np.array(euler))
                         except Exception as e:
                             warnings.warn(f"Could not get IMU data: {e}")
+                            try:
+                                print(euler)
+                            except:
+                                pass
                             pass
                     if self._ctx.has_enc_monitor:
                         try:

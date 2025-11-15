@@ -157,8 +157,7 @@ class CertusMonitor(threading.Thread):
         return self
 
     def __exit__(self, *exc):
-        self._socket.close()
-        self._context.term()
+        self._kill_event.set()
         self.join()
 
     @partial(jax.jit, static_argnames=("self",))
@@ -175,35 +174,39 @@ class CertusMonitor(threading.Thread):
         return omega_rotated
 
     def run(self) -> None:
-        while not self._kill_event.is_set():
-            try:
-                message = self._socket.recv()
-                data = yaml.safe_load(message)
+        try:
+            while not self._kill_event.is_set():
+                try:
+                    message = self._socket.recv()
+                    data = yaml.safe_load(message)
 
-                euler = [data["Head"], data["Pitch"], data["Roll"]]
-                omega = [data["w_Roll"], data["w_Pitch"], data["w_Head"]]
-                if self._euler_offset:
-                    euler = self.rotate_rot(euler)
-                    omega = self.rotate_omega(omega)
+                    euler = [data["Head"], data["Pitch"], data["Roll"]]
+                    omega = [data["w_Roll"], data["w_Pitch"], data["w_Head"]]
+                    if self._euler_offset:
+                        euler = self.rotate_rot(euler)
+                        omega = self.rotate_omega(omega)
 
-                state = IMUState(
-                    heading=float(euler[0]),
-                    pitch=float(euler[1]),
-                    roll=float(euler[2]),
-                    p=float(omega[0]),
-                    q=float(omega[1]),
-                    r=float(omega[2]),
-                    lon=data["Lon"],
-                    lat=data["Lat"],
-                    alt=data["Alt"],
-                    t_imu=data["Sec"],
-                    t_pc=data["PC_Time"],
-                )
+                    state = IMUState(
+                        heading=float(euler[0]),
+                        pitch=float(euler[1]),
+                        roll=float(euler[2]),
+                        p=float(omega[0]),
+                        q=float(omega[1]),
+                        r=float(omega[2]),
+                        lon=data["Lon"],
+                        lat=data["Lat"],
+                        alt=data["Alt"],
+                        t_imu=data["Sec"],
+                        t_pc=data["PC_Time"],
+                    )
 
-                if self._sinks:
-                    for sink in self._sinks:
-                        sink(state)
+                    if self._sinks:
+                        for sink in self._sinks:
+                            sink(state)
 
-            except zmq.Again:
-                # No new message, use the last known values
-                pass
+                except zmq.Again:
+                    # No new message, use the last known values
+                    pass
+        finally:
+            self._socket.close()
+            self._context.term()

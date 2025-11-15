@@ -299,12 +299,13 @@ class GimbalSend(threading.Thread):
             mode: One of 'manual' or 'tracking'
         """
         if mode in ["manual", "tracking"]:
+            if mode != "tracking":
+                self._msg_queue.put(f"S,A{0.0:.3f},E{0.0:.3f}")
+                self._new_msg_event.set()
             self._mode = mode
             self._state.update_single_field("mode", mode)
             self._new_msg_event.set()
 
-        if mode != "tracking":
-            self.send_speed(0.0, 0.0)
 
     def send_speed(self, az_speed: float, el_speed: float) -> None:
         """
@@ -423,6 +424,10 @@ class GimbPIController(threading.Thread):
         d = (a - b + 180) % 360 - 180
         return d
 
+    def reset_integral(self) -> None:
+        with self._lock:
+            self.integral_error = np.zeros(2)
+
     def update_control(self) -> dict[str, NDArray | list[float]]:
         with self._lock:
             hp_imu = self._imu_state.hpr[0:2]
@@ -478,6 +483,7 @@ class GimbalController:
         self._gimbal_pi_thread.new_data(imu_state)
 
     def set_mode(self, mode: str) -> None:
+        self._gimbal_pi_thread.reset_integral()
         self._gimbal_send_thread.set_mode(mode)
 
     def set_home(self, axis: str) -> None:

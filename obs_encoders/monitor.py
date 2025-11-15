@@ -108,30 +108,33 @@ class EncoderMonitor(threading.Thread):
         return self
 
     def __exit__(self, *exc):
-        self.socket.close()
-        self.context.term()
+        self._kill_event.set()
         self.join()
 
     def run(self) -> None:
         """Get the latest azimuth and elevation from the ZMQ stream."""
-        while not self._kill_event.is_set():
-            try:
-                message = self.socket.recv()
-                data = yaml.safe_load(message)
+        try:
+            while not self._kill_event.is_set():
+                try:
+                    message = self.socket.recv()
+                    data = yaml.safe_load(message)
 
-                state = EncoderState(
-                    az=float(data["Az"]),
-                    el=float(data["El"]),
-                    az_raw=float(data["Az_raw"]),
-                    el_raw=float(data["El_raw"]),
-                    t=float(data["Sec"]),
-                )
+                    state = EncoderState(
+                        az=float(data["Az"]),
+                        el=float(data["El"]),
+                        az_raw=float(data["Az_raw"]),
+                        el_raw=float(data["El_raw"]),
+                        t=float(data["Sec"]),
+                    )
 
-                if self.sink is not None:
-                    self.sink(state)
+                    if self.sink is not None:
+                        self.sink(state)
 
-            except zmq.Again:
-                pass
+                except zmq.Again:
+                    pass
 
-            except Exception as e:
-                print(f"Error receiving encoder data: {e}")
+                except Exception as e:
+                    print(f"Error receiving encoder data: {e}")
+        finally:
+            self.socket.close()
+            self.context.term()

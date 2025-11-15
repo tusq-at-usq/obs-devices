@@ -44,7 +44,10 @@ class ObsCLI(threading.Thread):
 
         while not self._kill_event.is_set():
             try:
-                cur_mode = self._state.gimbal_state.mode if not self._ctx._quit else ""
+                if self._state.gimbal_state is not None:
+                    cur_mode = self._state.gimbal_state.mode
+                else:
+                    cur_mode = ""
                 inp = session.prompt(
                     f"scoti[{counter}] ({cur_mode}) > ",
                     auto_suggest=AutoSuggestFromHistory(),

@@ -17,11 +17,11 @@ class State:
         self,
         imu_state: IMUState | None = None,
         encoder_state: EncoderState | None = None,
-        controller_state: GimbalState | None = None,
+        gimbal_state: GimbalState | None = None,
     ):
         self._imu_state = imu_state
         self._encoder_state = encoder_state
-        self._gimbal_state = controller_state
+        self._gimbal_state = gimbal_state
         self._lock = threading.RLock()
 
     @property
@@ -36,11 +36,11 @@ class State:
     @property
     def gimbal_state(self) -> GimbalState | None:
         with self._lock:
-            return self._controller_state
+            return self._gimbal_state
 
-    def set_controller_state(self, value: GimbalState | None) -> None:
+    def set_gimbal_state(self, value: GimbalState | None) -> None:
         with self._lock:
-            self._controller_state = value
+            self._gimbal_state = value
 
     @property
     def encoder_state(self) -> EncoderState | None:

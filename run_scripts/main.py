@@ -7,6 +7,7 @@ from obs_target.target import PathTarget
 from obs_target.sky_test import SkyTarget
 from obs_target.parse import read_varda_traj
 from obs_controller.controller import GimbalController
+from obs_utils.state_plotter import StatePlotter
 
 from obs_certus.monitor import CertusMonitor
 from obs_encoders.monitor import EncoderMonitor
@@ -29,8 +30,9 @@ def main():
     )
 
     # Instantiate state and monitors
-    # state = State()
-    # imu_monitor = CertusMonitor(sink=state.set_imu_state)
+    state = State()
+    state_plotter = StatePlotter(state=state, interval=0.5)
+    imu_monitor = CertusMonitor(sink=state.set_imu_state)
     # controller = Controller(sink=state.set_controller_state)
     # context = Context(
     #     imu_monitor=imu_monitor,

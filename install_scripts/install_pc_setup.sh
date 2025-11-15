@@ -108,14 +108,6 @@ add_tserver_to_chrony_sources() {
   fi
 }
 
-reboot_on_confirm() {
-  read -p "Setup complete. Reboot required for permission to take effect. Reboot now? (y/n): " choice
-  case "$choice" in 
-    y|Y ) echo "Rebooting..."; sudo reboot;;
-    n|N ) echo "Reboot cancelled. Please reboot later to apply all changes.";;
-    * ) echo "Invalid input. Please enter y or n.";;
-  esac
-}
 
 
 sudo apt update
@@ -131,8 +123,5 @@ install_nvim
 install_vscode
 set_permissions
 add_tserver_to_chrony_sources
-if [[ -t 1 ]]; then
-  reboot_on_confirm
-else
-  echo "Don't forget to reboot the system later to apply all changes."
-fi
+
+echo "PC setup installation complete. Please reboot your system to apply all changes."

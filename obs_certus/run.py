@@ -8,13 +8,15 @@ import json
 from rich.table import Table
 from rich.live import Live
 from rich.console import Console
+from importlib.resources import files
 
 from obs_utils.discovery import port_serial_search
 
-CERTUS_EXEC = os.path.join(
-    os.path.dirname(__file__), "./", "cpp", "certus", "stream_packets"
-)
+CERTUS_EXEC = str(files("obs_certus").joinpath("cpp", "certus", "stream_packets"))
 
+# CERTUS_EXEC = os.path.join(
+#     os.path.dirname(__file__), "./", "cpp", "certus", "stream_packets"
+# )
 
 class IMUDisplay:
     def __init__(self, config: dict) -> None:

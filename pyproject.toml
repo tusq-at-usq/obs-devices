@@ -20,6 +20,7 @@ dependencies = [
     "vmbpy[numpy,opencv]",
     "pandas>=2.3.3",
     "jax>=0.8.0",
+    "astropy>=7.1.1",
 ]
 
 [tool.setuptools]

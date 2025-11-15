@@ -30,7 +30,7 @@ class GimbalState:
     az_limit_max: float = 170.0
     el_limit_min: float = -70.0
     el_limit_max: float = 89.9
-    _mode: str = "manual"
+    mode: str = "manual"
 
     @property
     def pos(self) -> np.ndarray:
@@ -81,7 +81,7 @@ class SharedGimbalState:
             s = self._state
             s.u_az = new_state.u_az
             s.u_el = new_state.u_el
-            s._mode = new_state._mode
+            s.mode = new_state.mode
             s.t_cmd_update = new_state.t_cmd_update
 
     def update_from_ctrl(self, new_state: GimbalState) -> None:
@@ -300,7 +300,7 @@ class GimbalSend(threading.Thread):
         """
         if mode in ["manual", "tracking"]:
             self._mode = mode
-            self._state.update_single_field("_mode", mode)
+            self._state.update_single_field("mode", mode)
             self._new_msg_event.set()
 
         if mode != "tracking":
@@ -324,7 +324,7 @@ class GimbalSend(threading.Thread):
                 GimbalState(
                     u_az = az_speed,
                     u_el = el_speed,
-                    _mode=self.mode,
+                    mode=self.mode,
                     t_cmd_update=time.time(),
                 )
             )
@@ -447,7 +447,7 @@ class GimbPIController(threading.Thread):
                 if self._kill_switch.is_set():
                     break
                 self._update_event.clear()
-                if self._gimbal_state.snapshot()._mode == "tracking":
+                if self._gimbal_state.snapshot().mode == "tracking":
                     data = self.update_control()
                     if self._ctrl_sink is not None:
                         self._ctrl_sink(data["ctrl"][0], data["ctrl"][1])
@@ -474,13 +474,20 @@ class GimbalController:
     _gimbal_pi_thread: GimbPIController
     _ctx: zmq.Context
 
-    _kill_switch: threading.Event
-
     def set_imu_state(self, imu_state: IMUState) -> None:
         self._gimbal_pi_thread.new_data(imu_state)
 
     def set_mode(self, mode: str) -> None:
         self._gimbal_send_thread.set_mode(mode)
+
+    def set_home(self, axis: str) -> None:
+        self._gimbal_send_thread.set_home(axis)
+
+    def set_limit(self, axis: str, end: str) -> None:
+        self._gimbal_send_thread.set_limit(axis, end)
+
+    def reset_limits(self) -> None:
+        self._gimbal_send_thread.reset_limits()
 
     def __init__(self, target: Target, sink: GimbalSink | None = None):
         self._gimbal_state = shared_gimbal_state
@@ -491,7 +498,11 @@ class GimbalController:
             gimbal_state=self._gimbal_state,
             ctrl_sink=self._gimbal_send_thread.send_speed,
         )
-        self._kill_switch = threading.Event()
+
+    def stop(self):
+        self._gimbal_recv_thread.stop()
+        self._gimbal_send_thread.stop()
+        self._gimbal_pi_thread.stop()
 
     def __enter__(self):
         self._ctx = zmq.Context()
@@ -503,9 +514,7 @@ class GimbalController:
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        self._gimbal_recv_thread.stop()
-        self._gimbal_send_thread.stop()
-        self._gimbal_pi_thread.stop()
+        self.stop()
         self._gimbal_recv_thread.join()
         self._gimbal_send_thread.join()
         self._gimbal_pi_thread.join()

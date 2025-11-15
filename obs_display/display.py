@@ -7,12 +7,14 @@ import cv2
 import warnings
 from dataclasses import dataclass
 import datetime
+from numpy.typing import NDArray
 from contextlib import nullcontext
 
 from obs_cameras.base import CameraStream
 from obs_encoders.monitor import EncoderMonitor
 from obs_certus.monitor import CertusMonitor
 from obs_target.target import Target
+from obs_utils.context import Context, State
 
 
 @dataclass
@@ -26,13 +28,9 @@ class DisplaySettings:
 
 
 class Display:
-    _instance_counter = 0
-    instance_number: int
-    name: str
-    _stream: CameraStream
     _kill_event: threading.Event
-    _init_labels_event: threading.Event
-    _stream_lock: threading.RLock
+    _new_stream_event: threading.Event
+    _disp_lock: threading.RLock
 
     app: PyQt6.QtWidgets.QApplication
     win: pg.GraphicsLayoutWidget
@@ -47,41 +45,39 @@ class Display:
 
     _disp_set: DisplaySettings
 
-    _imu_monitor: CertusMonitor | None
-    _encoder_monitor: EncoderMonitor | None
-    _has_imu: bool
-    _has_encoder: bool
-    _overlay: Target | None
-    _has_overlay: bool
+    _ctx: Context
+    _stream: CameraStream
+    _state: State
+    _target: Target | None
 
+    # _stream: CameraStream
+    # _imu_monitor: CertusMonitor | None
+    # _encoder_monitor: EncoderMonitor | None
+    # _has_imu: bool
+    # _has_encoder: bool
+    # _overlay: Target | None
+    # _has_overlay: bool
 
     def __init__(
         self,
-        name,
-        stream: CameraStream,
-        imu_monitor: CertusMonitor | None = None,
-        encoder_monitor: EncoderMonitor | None = None,
-        overlay: Target | None = None,
-        width: int = 1920,
+        context: Context,
+        state: State,
+        target: Target | None,
     ):
-        Display._instance_counter += 1
-        self.instance_number = Display._instance_counter
-        self.name = name
-        self._stream = stream
-        self._imu_monitor = imu_monitor if imu_monitor is not None else nullcontext()
-        self._encoder_monitor = encoder_monitor if encoder_monitor is not None else nullcontext()
-        self._overlay = overlay
-        self._has_imu = imu_monitor is not None
-        self._has_encoder = encoder_monitor is not None
-        self._has_overlay = overlay is not None
-        self._stream_lock = threading.RLock()
+        self._ctx = context
+        self._stream = self._ctx.disp_stream
+        self._state = state
+        self._target = target
+
+        self._width = 1920
+
+        self._disp_lock = threading.RLock()
         self._kill_event = threading.Event()
         self._disp_set = DisplaySettings()
-        self._width = width
 
         self.app = pg.Qt.mkQApp(name="Video-stream")
         self.win = pg.GraphicsLayoutWidget()
-        self.win.setWindowTitle("Display " + str(self.instance_number))
+        self.win.setWindowTitle("Display " + str(self._stream.cam.name))
         self.win.keyPressEvent = self.on_key
 
         self.p1 = self.win.addViewBox(row=0, col=0)
@@ -143,7 +139,7 @@ class Display:
         self.p1.addItem(self.traj_time_indicator)
 
         self.set_bounds()
-        self._init_labels()
+        self._init_stream()
 
     def on_key(self, ev: QtGui.QKeyEvent):
         txt = ev.text()
@@ -152,7 +148,7 @@ class Display:
             self._stream.save_enabled = not self._stream.save_enabled
         if txt == "G":
             old_gain = self._stream.cam.gain
-            new_gain = old_gain * 1.1
+            new_gain = min(old_gain * 1.1, 0.1)
             self._stream.cam.set_gain(new_gain)
         elif txt == "g":
             old_gain = self._stream.cam.gain
@@ -175,9 +171,6 @@ class Display:
         elif txt in ["Q", "q"]:
             self.close()
 
-
-
-
     def set_bounds(self):
         # self.img_size = self._stream.cam.frame_res
         aspect = self._stream.cam.frame_res[0] / self._stream.cam.frame_res[1]
@@ -185,10 +178,11 @@ class Display:
         self._display_res = (int(self._width), int(height))
         self._scale_factor = self._display_res[0] / self._stream.cam.frame_res[0]
 
-
         # Set constant bounds for the view
         self.p1.setRange(
-            xRange=(0, self._display_res[0]), yRange=(0, self._display_res[1]), padding=0
+            xRange=(0, self._display_res[0]),
+            yRange=(0, self._display_res[1]),
+            padding=0,
         )
 
         # Disable auto-scaling
@@ -208,9 +202,22 @@ class Display:
         else:
             return img
 
-    def _init_labels(self):
+    def signal_new_stream(self):
+        self._new_stream_event.set()
+
+    def change_stream(self):
+        with self._disp_lock:
+            self._stream = self._ctx.disp_stream
+            self.set_bounds()
+            self._init_stream()
+        self._new_stream_event.clear()
+
+    def _init_stream(self):
         img_ratio = self._display_res[0] / self._display_res[1]
-        win_dims = (int(self._width * 0.8), int(self._width * 0.8 * (1 / img_ratio) - 100))
+        win_dims = (
+            int(self._width * 0.8),
+            int(self._width * 0.8 * (1 / img_ratio) - 100),
+        )
         self.win.resize(*win_dims)
 
         # Private re-scale function just for labels
@@ -273,7 +280,7 @@ class Display:
         self.win.show()
 
     def set_clahe(self, enabled: bool, clip_limit: float = 2.0):
-        with self._stream_lock:
+        with self._disp_lock:
             if enabled:
                 self._disp_set.clahe_enabled = True
                 self._disp_set.clahe = cv2.createCLAHE(
@@ -281,17 +288,16 @@ class Display:
                 )
             else:
                 self._disp_set.clahe_enabled = False
-                self._disp_set.clahe = None
 
     def set_norm(self, enabled: bool):
-        with self._stream_lock:
+        with self._disp_lock:
             if enabled:
                 self._disp_set.norm_enabled = True
             else:
                 self._disp_set.norm_enabled = False
 
     def set_colourmap(self, enabled: bool):
-        with self._stream_lock:
+        with self._disp_lock:
             if enabled:
                 self._disp_set.colourmap_enabled = True
             else:
@@ -314,10 +320,12 @@ class Display:
             img (img): The img to display.
         """
 
-        # img = img.astype(np.uint8)
-        # img = cv2.normalize(img, None, 0, 255, cv2.NORM_MINMAX)
         if self._disp_set.norm_enabled:
-            img = self.soft_normalise(img)
+            try:
+                img = self.soft_normalise(img)
+            except:
+                warnings.warn("Can't normalise image")
+                self.set_norm(False)
 
         if self._disp_set.clahe_enabled:
             try:
@@ -327,22 +335,36 @@ class Display:
                 self.set_clahe(False)
 
         if self._disp_set.colourmap_enabled:
-            local_mean = cv2.GaussianBlur(img, (25, 25), 5)
-            contrast = cv2.subtract(img, local_mean)
-            normalised = self.soft_normalise(contrast, 1, 99)
-            img = cv2.applyColorMap(normalised, cv2.COLORMAP_INFERNO)
+            try:
+                local_mean = cv2.GaussianBlur(img, (25, 25), 5)
+                contrast = cv2.subtract(img, local_mean)
+                normalised = self.soft_normalise(contrast, 1, 99)
+                img = cv2.applyColorMap(normalised, cv2.COLORMAP_INFERNO)
+            except:
+                warnings.warn("Can't apply colourmap")
+                self.set_colourmap(False)
         self.img.setImage(img, axis=0, levels=[0, 255])
 
-    def update_labels(self, lab_data):
+    def update_labels(self, lab_data: dict):
         for key, item in lab_data.items():
             self.labs[key].setText(key + ": " + str(item))
 
-    def update_tracking(self, timestamp, hpr_euler):
-        uv_path, uv_pt = self._overlay.project_from_ned_angles(hpr_euler, timestamp)
-        grad = np.gradient(uv_path[:,1], uv_path[:,0])
+    def update_tracking(self, target: Target, timestamp: float, hpr_euler: NDArray):
+        uv_path, uv_pt = target.project_from_ned_angles(hpr_euler, timestamp)
+        grad = np.gradient(uv_path[:, 1], uv_path[:, 0])
         theta = np.arctan(grad)
-        upper_bound = np.array([uv_path[:,0] + np.sin(theta) * self.offset, uv_path[:,1] - np.cos(theta) * self.offset])
-        lower_bound = np.array([uv_path[:,0] - np.sin(theta) * self.offset, uv_path[:,1] + np.cos(theta) * self.offset])
+        upper_bound = np.array(
+            [
+                uv_path[:, 0] + np.sin(theta) * self.offset,
+                uv_path[:, 1] - np.cos(theta) * self.offset,
+            ]
+        )
+        lower_bound = np.array(
+            [
+                uv_path[:, 0] - np.sin(theta) * self.offset,
+                uv_path[:, 1] + np.cos(theta) * self.offset,
+            ]
+        )
         self.traj_bounds_upper.setData(
             y=self._display_res[1] - upper_bound[1],
             x=1 * upper_bound[0],
@@ -355,11 +377,11 @@ class Display:
         )
         self.traj_time_indicator.setData(
             y=[
-                self._display_res[1] - uv_pt[0,1] + self.offset,
-                self._display_res[1] - uv_pt[0,1] + 2 * self.offset,
-                self._display_res[1] - uv_pt[0,1] - self.offset,
-                self._display_res[1] - uv_pt[0,1] - 2* self.offset
-                ],
+                self._display_res[1] - uv_pt[0, 1] + self.offset,
+                self._display_res[1] - uv_pt[0, 1] + 2 * self.offset,
+                self._display_res[1] - uv_pt[0, 1] - self.offset,
+                self._display_res[1] - uv_pt[0, 1] - 2 * self.offset,
+            ],
             x=[
                 uv_pt[0, 0] - self.offset,
                 uv_pt[0, 0] - 2 * self.offset,
@@ -371,7 +393,6 @@ class Display:
         )
 
     def crosshairs(self):
-
         self.x_rules.setData(
             y=[
                 1 * self._display_res[1] / 8,
@@ -406,8 +427,10 @@ class Display:
         )
 
     def run(self):
-        with self._stream, self._imu_monitor, self._encoder_monitor:
+        try:
             while not self._kill_event.is_set():
+                if self._new_stream_event.is_set():
+                    self.change_stream()
                 frame = self._stream.latest_frame()
                 if frame is not None:
                     frame = self._stream.cam.convert_for_monitoring(frame)
@@ -424,29 +447,29 @@ class Display:
                             frame.timestamp, tz=datetime.timezone.utc
                         ).strftime("%H:%M:%S.%f")[:-5],
                     }
-                    if self._has_imu:
-                        # try:
-                        if True:
-                            euler = self._imu_monitor.get_hpr(frame.timestamp)
+                    if self._ctx.has_imu_monitor:
+                        try:
+                            euler = self._state.extrap_imu_state(frame.timestamp).hpr
                             lab_data["IMU"] = (
                                 f"Head {euler[0]:.2f} Pitch {euler[1]:.2f}"
                             )
-                            if self._has_overlay:
-                                self.update_tracking(frame.timestamp, euler)
-                        # except Exception as e:
-                        #     print(e)
-                        #     pass
-                    if self._has_encoder:
+                            if self._target is not None:
+                                self.update_tracking(self._target, frame.timestamp, np.array(euler))
+                        except Exception as e:
+                            warnings.warn(f"Could not get IMU data: {e}")
+                            pass
+                    if self._ctx.has_enc_monitor:
                         try:
-                            azel = self._encoder_monitor.get_azel(frame.timestamp)
+                            azel = self._state.encoder_state.azel
                             lab_data["GIM"] = f"Az {azel[0]:.2f}, El {azel[1]:.2f}"
                         except:
                             pass
+
                     img = self.downscale(frame.pixels)
                     self.update_img(img)
                     self.update_labels(lab_data)
-                        # self.update_tracking(frame.timestamp)
                     self.app.processEvents()
+        finally:
             self.p1.close()
             self.win.close()
             self.app.closeAllWindows()

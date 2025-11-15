@@ -12,16 +12,19 @@ class Alvium811(CameraInterface):
     GAIN_DEFAULT = 1
     EXP_DEFAULT = 20e3
 
-    _vmb: vmbpy.VmbSystem = None
-    _vmbcam: vmbpy.Camera = None
-    cam_id: str | None = None
-    _frame: vmbpy.Frame = None
-    _frame_delivered = threading.Event()
+    _vmb: vmbpy.VmbSystem
+    _vmbcam: vmbpy.Camera
+    cam_id: str | None
+    _frame: vmbpy.Frame
+    _frame_delivered = threading.Event
 
     _limits = {}
 
     def __init__(self):
         super().__init__()
+        self.cam_id = None
+        self._frame_delivered = threading.Event()
+
 
     @property
     def name(self) -> str:
@@ -47,8 +50,8 @@ class Alvium811(CameraInterface):
                 ][0]
             except IndexError:
                 raise RuntimeError(f"Camera with ID {self.cam_id} not found.")
-        self._vmbcam = vmbcam
         if vmbcam is not None:
+            self._vmbcam = vmbcam
             self.cam_id = cam_dict[vmbcam]["ID"]
 
     def list_devices(self) -> dict:
@@ -106,6 +109,7 @@ class Alvium811(CameraInterface):
         Must be implemented by derived classes.
         """
 
+        # Think this is dodgy? Assigning to self when that isn't a function argument?
         def frame_handler(cam: vmbpy.Camera, stream: vmbpy.Stream, frame: vmbpy.Frame):
             self._frame = frame.as_numpy_ndarray()
             self._frame_delivered.set()

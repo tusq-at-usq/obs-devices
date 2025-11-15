@@ -1,6 +1,6 @@
 import time
 
-from obs_cameras.alvium import Alvium811
+from obs_cameras.alvium import Alvium811, Alvium508
 from obs_cameras.base import CameraStream
 from obs_display.display import Display
 from obs_target.target import PathTarget
@@ -12,12 +12,13 @@ from obs_utils.state_plotter import StatePlotter
 from obs_certus.monitor import CertusMonitor
 from obs_encoders.monitor import EncoderMonitor
 from obs_utils.context import Context, State
+from obs_cli.cli import ObsCLI
+
 
 import astrix as at
 
 
 def main():
-
     # Create objects from data
     # path_nom = read_varda_traj(
     #     "~/varda-w4/planning/data/W4_Nominal_ECEF.csv",
@@ -29,37 +30,33 @@ def main():
         (2848, 2848), (2.74 * 1e-3 * 2848, 2.74 * 1e-3 * 2848), 21
     )
 
+    alv_stream = CameraStream("test-cam", Alvium508(), "~/test_cam_data", alv811_25_mod)
+
+
     # Instantiate state and monitors
     state = State()
-    state_plotter = StatePlotter(state=state, interval=0.5)
+    # state_plotter = StatePlotter(state=state, interval=0.5)
     target = SkyTarget("Canopus", pt_Bledisloe, alv811_25_mod)
     gimbal_controller = GimbalController(target, sink=state.set_gimbal_state)
-    imu_monitor = CertusMonitor(sink=[state.set_imu_state, gimbal_controller.set_imu_state])
-    # controller = Controller(sink=state.set_controller_state)
-    # context = Context(
-    #     imu_monitor=imu_monitor,
-    #     controller=controller,
-    # )
-
-    context = Context(imu_monitor=imu_monitor, controller=gimbal_controller)
+    imu_monitor = CertusMonitor(
+        sink=[state.set_imu_state, gimbal_controller.set_imu_state]
+    )
+    context = Context(streams=[alv_stream], imu_monitor=imu_monitor, controller=gimbal_controller)
+    display = Display(context, state, target)
+    cli = ObsCLI(context, state, display)
 
     with context:
-        gimbal_controller.set_mode("tracking")
-        state_plotter.run()
-        input("Press Enter to continue...")
-        state_plotter.stop()
+        cli.start()
+        display.run()
 
+        # gimbal_controller.set_mode("tracking")
+        # state_plotter.run()
+        # input("Press Enter to continue...")
+        # state_plotter.stop()
 
     # head, pitch = target.get_head_pitch(time.time())
     # print("Head:", head)
     # print("Pitch:", pitch)
-
-
-
-
-
-
-
 
 
 if __name__ == "__main__":

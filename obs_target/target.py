@@ -21,13 +21,13 @@ class Target(ABC):
     @abstractmethod
     def project_from_ecef_angles(
         self, euler: ArrayLike, t_unix: float
-    ) -> tuple[ArrayLike, ArrayLike]:
+    ) -> tuple[NDArray, NDArray]:
         pass
 
     @abstractmethod
     def project_from_ned_angles(
         self, euler: ArrayLike, t_unix: float
-    ) -> tuple[ArrayLike, ArrayLike]:
+    ) -> tuple[NDArray, NDArray]:
         pass
 
     @abstractmethod
@@ -82,10 +82,11 @@ class PathTarget(Target):
 
     def project_from_ecef_angles(
         self, euler: ArrayLike, t_unix: float
-    ) -> tuple[ArrayLike, ArrayLike]:
+    ) -> tuple[NDArray, NDArray]:
         if self._cam is None:
             raise RuntimeError("Camera is not defined for this target.")
-        return self._project_from_ecef_angles(euler, t_unix)
+        uv_path, uv_point = self._project_from_ecef_angles(euler, t_unix)
+        return np.array(uv_path), np.array(uv_point)
 
     @partial(jax.jit, static_argnames=("self",))
     def _project_from_ned_angles(
@@ -110,10 +111,11 @@ class PathTarget(Target):
 
     def project_from_ned_angles(
         self, euler: ArrayLike, t_unix: float
-    ) -> tuple[ArrayLike, ArrayLike]:
+    ) -> tuple[NDArray, NDArray]:
         if self._cam is None:
             raise RuntimeError("Camera is not defined for this target.")
-        return self._project_from_ned_angles(euler, t_unix)
+        uv_path, uv_pt =  self._project_from_ned_angles(euler, t_unix)
+        return np.array(uv_path), np.array(uv_pt)
 
     def check_time_bounds(self, t_unix: float) -> tuple[bool, bool]:
         """Check if the given unix time is within the bounds of the target path.

@@ -19,10 +19,11 @@ def main():
 
     # Create objects from data
     path_nom = read_varda_traj(
-        "~/varda-w4/planning/data/W4_Nominal_ECEF.csv",
+        "~/Projects/obs/varda-w4/planning/data/W4_Nominal_ECEF.csv",
         test_time_adjustment=True,
     )
-    pt_GS2 = at.Point.from_geodet([-32.150517, 133.689040, 10])
+    # pt_GS2 = at.Point.from_geodet([-32.150517, 133.689040, 10])
+    pt_Bledisloe = at.Point.from_geodet([-27.511726, 153.0249, 10])
     alv811_25_mod = at.FixedZoomCamera(
         (2848, 2848), (2.74 * 1e-3 * 2848, 2.74 * 1e-3 * 2848), 21
     )
@@ -36,10 +37,11 @@ def main():
     #     controller=controller,
     # )
 
-    target = SkyTarget("Canopus", pt_GS2, alv811_25_mod)
+    target = SkyTarget("Canopus", pt_Bledisloe, alv811_25_mod)
     head, pitch = target.get_head_pitch(time.time())
     print("Head:", head)
     print("Pitch:", pitch)
+
 
 
 

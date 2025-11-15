@@ -12,7 +12,7 @@ from contextlib import nullcontext
 from obs_cameras.base import CameraStream
 from obs_encoders.monitor import EncoderMonitor
 from obs_certus.monitor import CertusMonitor
-from obs_overlay.overlay import Overlay
+from obs_target.target import Target
 
 
 @dataclass
@@ -51,7 +51,7 @@ class Display:
     _encoder_monitor: EncoderMonitor | None
     _has_imu: bool
     _has_encoder: bool
-    _overlay: Overlay | None
+    _overlay: Target | None
     _has_overlay: bool
 
 
@@ -61,7 +61,7 @@ class Display:
         stream: CameraStream,
         imu_monitor: CertusMonitor | None = None,
         encoder_monitor: EncoderMonitor | None = None,
-        overlay: Overlay | None = None,
+        overlay: Target | None = None,
         width: int = 1920,
     ):
         Display._instance_counter += 1

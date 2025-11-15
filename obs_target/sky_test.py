@@ -58,7 +58,7 @@ class SkyTarget(Target):
         return True, True
 
     def get_planet(self, name: str, t_unix: float) -> tuple[float, float]:
-        lat, lon, height = self._point.geodet
+        lat, lon, height = self._point.geodet[0]
         t = Time(t_unix, format="unix")
         loc = EarthLocation(lat=lat * u.deg, lon=lon * u.deg, height=height * u.meter)
 
@@ -72,7 +72,7 @@ class SkyTarget(Target):
         return az, el
 
     def get_star(self, name: str, t_unix: float) -> tuple[float, float]:
-        lat, lon, height = self._point.geodet
+        lat, lon, height = self._point.geodet[0]
         time = Time(t_unix, format="unix")
         loc = EarthLocation(lat=lat * u.deg, lon=lon * u.deg, height=height * u.meter)
         ra, dec = BRIGHT_STARS[name]

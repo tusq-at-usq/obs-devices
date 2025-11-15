@@ -18,7 +18,7 @@ DEFAULT_CONFIG_PATH = os.path.join(
 )
 
 
-@jax.tree_util.register_pytree_node_class
+@jax.tree_util.register_dataclass
 @dataclass(frozen=True)
 class EncoderState:
     az: float  # Azimuth

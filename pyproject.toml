@@ -27,7 +27,7 @@ dependencies = [
 packages = ["obs_utils", "obs_tui", "obs_certus", "obs_encoders", "obs_display", "obs_cameras", "obs_controller", "obs_target"]
 
 [project.scripts]
-obs-tui = "tui.__main__:main"
+obs-tui = "obs_tui.__main__:main"
 obs-show-devices = "obs_utils.discovery:print_search"
 obs-certus = "obs_certus.__main__:main"
 obs-encoders = "obs_encoders.__main__:main"

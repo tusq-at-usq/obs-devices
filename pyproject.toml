@@ -21,7 +21,7 @@ dependencies = [
 ]
 
 [tool.setuptools]
-packages = ["obs_utils", "obs_tui", "obs_certus", "obs_encoders", "obs_display", "obs_overlay", "obs_cameras"]
+packages = ["obs_utils", "obs_tui", "obs_certus", "obs_encoders", "obs_display", "obs_overlay", "obs_cameras", "obs_controller"]
 
 [project.scripts]
 obs-tui = "tui.__main__:main"

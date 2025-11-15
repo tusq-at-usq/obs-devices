@@ -150,7 +150,7 @@ class CertusMonitor(threading.Thread):
         if self._config["protocol"] == "IPC":
             self._socket.connect(f"ipc://{self._config['address']}")
         elif self._config["protocol"] == "TCP":
-            self._socket.connect(f"tcp://*:{self._config['address']}")
+            self._socket.connect(f"tcp://{self._config['address']}")
         else:
             raise ValueError("Unsupported protocol in config file")
         self.start()

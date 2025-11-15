@@ -38,4 +38,4 @@ typeCheckingMode = "standard"
 reportIgnoreCommentWithoutRule = false
 
 [tool.setuptools.package-data]
-"obs_certus" = ["cpp/*"]
+obs_certus = ["cpp/certus/stream_packets"]

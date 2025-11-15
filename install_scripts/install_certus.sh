@@ -28,5 +28,5 @@ make
 cd "$CWD"
 
 mkdir -p ~/obs-config
-cp "$SCRIPT_DIR"/../config/default_config.yaml ~/obs-config/certus_config.yaml
+cp "$SCRIPT_DIR"/../config/default_config.yaml ~/obs-config/certus_certus_config.yaml
 

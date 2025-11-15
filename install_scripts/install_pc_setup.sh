@@ -19,7 +19,7 @@ build_python_venv() {
 EOF
     fi
     source ~/.env/obs/bin/activate
-    pip install --upgrade pip
+    python3 -m pip install --upgrade pip
 }
 
 install_jetbrains_fonts() {
@@ -45,9 +45,8 @@ install_system_pkg_dependencies() {
 }
 
 install_python_packages() {
-    pip install --upgrade pip
-    pip install uv
-    uv pip install $SCRIPT_DIR
+    python3 -m pip install --upgrade pip
+    python3 -m pip install uv
 }
 
 create_config_dir() {
@@ -57,7 +56,7 @@ create_config_dir() {
     else
         echo "$HOME/obs-config already exists, skipping creation"
     fi
-    cp ./../obs_tui/config.yaml $HOME/obs-config/tui_default_config.yaml
+    cp "$SCRIPT_DIR"/config/default_tui_config.yaml $HOME/obs-config/tui_config.yaml
 }
 
 install_nvim() {

@@ -7,16 +7,16 @@ echo "Installing all components..."
 
 # Install PC setup
 echo "Installing PC setup..."
-./install_pc_setup.sh
+"$SCRIPT_DIR"/install_scripts/install_pc_setup.sh
 # Install Certus
 echo "Installing Certus..."
-./install_certus.sh
+"$SCRIPT_DIR"/install_scripts/install_certus.sh
 # Install Encoders
 echo "Installing Encoders..."
-./install_encoders.sh
+"$SCRIPT_DIR"/install_scripts/install_encoders.sh
 # Install Cameras
 echo "Installing Cameras..."
-./install_cameras.sh
+"$SCRIPT_DIR"/install_scripts/install_cameras.sh
 
 
 uv pip install $SCRIPT_DIR

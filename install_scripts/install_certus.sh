@@ -30,3 +30,4 @@ cd "$CWD"
 mkdir -p ~/obs-config
 cp "$SCRIPT_DIR"/../config/default_certus_config.yaml ~/obs-config/certus_imu_config.yaml
 
+echo "Certus installation complete."

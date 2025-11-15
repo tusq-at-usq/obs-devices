@@ -18,10 +18,12 @@ dependencies = [
     "pyqt6>=6.10.0",
     "pyqtgraph>=0.13.7",
     "vmbpy[numpy,opencv]",
+    "pandas>=2.3.3",
+    "jax>=0.8.0",
 ]
 
 [tool.setuptools]
-packages = ["obs_utils", "obs_tui", "obs_certus", "obs_encoders", "obs_display", "obs_overlay", "obs_cameras", "obs_controller"]
+packages = ["obs_utils", "obs_tui", "obs_certus", "obs_encoders", "obs_display", "obs_cameras", "obs_controller", "obs_target"]
 
 [project.scripts]
 obs-tui = "tui.__main__:main"

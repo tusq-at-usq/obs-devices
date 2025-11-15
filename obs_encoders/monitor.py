@@ -110,6 +110,7 @@ class EncoderMonitor(threading.Thread):
     def __exit__(self, *exc):
         self.socket.close()
         self.context.term()
+        self.join()
 
     def run(self) -> None:
         """Get the latest azimuth and elevation from the ZMQ stream."""

@@ -7,7 +7,7 @@ import threading
 from dataclasses import dataclass
 from typing import Callable
 from functools import partial
-from typing import TypeAlias
+from typing import TypeAlias, Iterable
 from types import ModuleType
 from numpy.typing import ArrayLike
 
@@ -17,7 +17,6 @@ from jax import Array
 import jax.numpy as jnp
 
 ArrayNS: TypeAlias = ModuleType
-
 
 
 DEFAULT_CONFIG_PATH = os.path.join(
@@ -116,11 +115,14 @@ class CertusMonitor(threading.Thread):
     rot_fixed: Rotation
     _euler_offset: tuple[float, float, float] | None
     _kill_event: threading.Event
-    sink: IMUSink | None
+    _sinks: list[IMUSink] | None
 
     def __init__(
-        self, config_filepath=DEFAULT_CONFIG_PATH, sink: IMUSink | None = None
+        self,
+        config_filepath=DEFAULT_CONFIG_PATH,
+        sink: IMUSink | Iterable[IMUSink] | None = None,
     ):
+        super().__init__()
         with open(config_filepath, "r") as f:
             self._config = yaml.safe_load(f)
         self._euler_offset = self._config.get("euler_offset", None)
@@ -133,7 +135,12 @@ class CertusMonitor(threading.Thread):
                 "ZYX", jnp.array([0.0, 0.0, 0.0]), degrees=True
             )
         self._kill_event = threading.Event()
-        self.sink = sink
+        if callable(sink):
+            self._sinks = [sink]
+        elif isinstance(sink, Iterable):
+            self._sinks = list(sink)
+        else:
+            self._sinks = None
 
     def __enter__(self):
         self._context = zmq.Context()
@@ -152,6 +159,7 @@ class CertusMonitor(threading.Thread):
     def __exit__(self, *exc):
         self._socket.close()
         self._context.term()
+        self.join()
 
     @partial(jax.jit, static_argnames=("self",))
     def rotate_rot(self, hpr: ArrayLike) -> ArrayLike:
@@ -192,8 +200,9 @@ class CertusMonitor(threading.Thread):
                     t_pc=data["PC_Time"],
                 )
 
-                if self.sink:
-                    self.sink(state)
+                if self._sinks:
+                    for sink in self._sinks:
+                        sink(state)
 
             except zmq.Again:
                 # No new message, use the last known values

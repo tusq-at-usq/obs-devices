@@ -21,4 +21,4 @@ if ! grep -q 'LD_LIBRARY_PATH=/opt/ids-peak_2.18.1.0-132_amd64/lib' ~/.bashrc; t
     echo 'export LD_LIBRARY_PATH=/opt/ids-peak_2.18.1.0-132_amd64/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH' >> ~/.bashrc
 fi
 
-
+sudo /opt/ids-peak_2.18.1.0-132_amd64/share/ids-peak/scripts/ids_install_udev_rule.sh

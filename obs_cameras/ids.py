@@ -30,7 +30,7 @@ class IDSU33080(CameraInterface):
     def __init__(self):
         super().__init__()
         self._frame_delivered = threading.Event()
-        ids = ids.Library.Initialize()
+        ids.Library.Initialize()
 
     def reconnect(self, idx=0) -> bool:
         try:

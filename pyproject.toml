@@ -22,6 +22,7 @@ dependencies = [
     "jax>=0.8.0",
     "astropy>=7.1.1",
     "prompt-toolkit>=3.0.52",
+    "zwoasi",
 ]
 
 [tool.setuptools]
@@ -36,6 +37,7 @@ obs-encoders = "obs_encoders.__main__:main"
 [tool.uv.sources]
 vmbpy = { url = "https://github.com/alliedvision/VmbPy/releases/download/1.2.0/vmbpy-1.2.0-py3-none-manylinux_2_27_x86_64.whl" }
 astrix = { git = "https://github.com/andrewjlock/astrix.git" }
+zwoasi = { git = "https://github.com/python-zwoasi/python-zwoasi.git" }
 
 [tool.basedpyright]
 typeCheckingMode = "standard"

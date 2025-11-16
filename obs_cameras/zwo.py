@@ -4,7 +4,10 @@ from typing import Any
 import time
 import warnings
 from obs_cameras.base import CameraInterface, Frame
+from importlib.resources import files
 
+ASI_LIB = str(files("obs_cameras").joinpath("assets", "libASICamera2.so.1.39"))
+asi.init(ASI_LIB)
 
 class ASI585(CameraInterface):
     NAME = "ASI585"

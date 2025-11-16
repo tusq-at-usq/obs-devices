@@ -146,7 +146,7 @@ class Alvium811(CameraInterface):
             )
             return frame
         else:
-            raise RuntimeError("Frame capture timed out.")
+            raise RuntimeError(f"Cam {self.name} frame capture timed out.")
 
     def _get_gain(self) -> float:
         """

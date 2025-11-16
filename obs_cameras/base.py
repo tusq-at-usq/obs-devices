@@ -440,8 +440,8 @@ class CameraStream:
 
         if self.frame_available_event.wait(timeout=1):
             with self._frame_lock:
-                    self.frame_available_event.clear()
                     return self._latest_frame
+                    self.frame_available_event.clear()
         else:
             return None
 

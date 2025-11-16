@@ -149,11 +149,11 @@ class Display:
             self._stream.save_enabled = not self._stream.save_enabled
         if txt == "G":
             old_gain = self._stream.cam.gain
-            new_gain = min(old_gain * 1.1, 0.1)
+            new_gain = max(old_gain * 1.1, old_gain + 1)
             self._stream.cam.set_gain(new_gain)
         elif txt == "g":
             old_gain = self._stream.cam.gain
-            new_gain = old_gain * 0.9
+            new_gain = min(old_gain * 0.9, old_gain - 1)
             self._stream.cam.set_gain(new_gain)
         elif txt == "E":
             old_exp = self._stream.cam.exposure
@@ -215,9 +215,13 @@ class Display:
 
     def _init_stream(self):
         img_ratio = self._display_res[0] / self._display_res[1]
+        # win_dims = (
+        #     int(self._width * 0.8),
+        #     int(self._width * 0.8 * (1 / img_ratio) - 100),
+        # )
         win_dims = (
             int(self._width * 0.8),
-            int(self._width * 0.8 * (1 / img_ratio) - 100),
+            int(self._width * 0.8 * (1 / img_ratio)),
         )
         self.win.resize(*win_dims)
 

@@ -195,6 +195,11 @@ class ObsCLI(threading.Thread):
                     self._kill_event.set()
                     print("\nExiting SCOTI")
 
+                if self._display is not None:
+                    if self._display._kill_event.is_set():
+                        print("\nDisplay closed. Exiting SCOTI")
+                        self._kill_event.set()
+
                 counter += 1
 
             except KeyboardInterrupt:

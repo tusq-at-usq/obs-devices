@@ -1,6 +1,7 @@
 import time
 
 from obs_cameras.alvium import Alvium811, Alvium508
+from obs_cameras.zwo import ASI585
 from obs_cameras.base import CameraStream
 from obs_display.display import Display
 from obs_target.target import PathTarget
@@ -30,7 +31,7 @@ def main():
         (2848, 2848), (2.74 * 1e-3 * 2848, 2.74 * 1e-3 * 2848), 21
     )
 
-    alv_stream = CameraStream("test-cam", Alvium508(), "~/test_cam_data", alv811_25_mod)
+    alv_stream = CameraStream("test-cam", ASI585(), "~/test_cam_data", alv811_25_mod)
 
 
     # Instantiate state and monitors
@@ -41,7 +42,8 @@ def main():
     imu_monitor = CertusMonitor(
         sink=[state.set_imu_state, gimbal_controller.set_imu_state]
     )
-    context = Context(streams=[alv_stream], imu_monitor=imu_monitor, controller=gimbal_controller)
+    # context = Context(streams=[alv_stream], imu_monitor=imu_monitor, controller=gimbal_controller)
+    context = Context(streams=[alv_stream])
     display = Display(context, state, target)
     cli = ObsCLI(context, state, display)
 

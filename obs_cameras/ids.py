@@ -63,24 +63,22 @@ class IDSU33080(CameraInterface):
                 self._rdn.FindNode("Gain").Maximum(),
             ),
         }
+        self.start_video()
         self.set_exposure(self.EXP_DEFAULT)
         self.set_gain(self.GAIN_DEFAULT)
-        self.start_video()
         return self
 
     def __exit__(self, exc_type, exc_value, traceback) -> None:
         self._rdn.FindNode("AcquisitionStop").Execute()
         self._datastream.StopAcquisition()
-        self._datastream.FlushQueue()
-        self._datastream.DiscardAllBuffers()
-        self._idscam.CloseDevice()
-        ids.Library.Terminate()
+        ids.Library.Close()
 
     def pause_video(self) -> None:
         self._rdn.FindNode("AcquisitionStop").Execute()
         self._rdn.FindNode("TriggerMode").SetCurrentEntry("Off")
 
     def resume_video(self) -> None:
+        self._rdn.FindNode("TriggerSource").SetCurrentEntry("Software")
         self._rdn.FindNode("TriggerMode").SetCurrentEntry("On")
         self._rdn.FindNode("AcquisitionStart").Execute()
         self._rdn.FindNode("AcquisitionStart").WaitUntilDone()
@@ -155,5 +153,5 @@ class IDSU33080(CameraInterface):
         # Convert to 8-bit grayscale for monitoring
         pix = (frame.pixels / 2**4).astype("uint8")
         # pix = cv2.resize(converted_frame, (self.DISPLAY_RES[1], self.DISPLAY_RES[0]))
-        # converted_frame = np.flip(converted_frame, axis=1)
+        pix = cv2.flip(pix, 1)
         return Frame(pix, frame.gain, frame.exposure, frame.timestamp, frame.cam_name)

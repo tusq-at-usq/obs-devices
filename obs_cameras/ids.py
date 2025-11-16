@@ -17,7 +17,6 @@ class IDSU33080(CameraInterface):
     GAIN_DEFAULT = 1
     EXP_DEFAULT = 20e3
 
-    _ids: ids.Library
     _idscam: ids.Camera
     _frame_delivered = threading.Event
     _limits = {}
@@ -31,17 +30,17 @@ class IDSU33080(CameraInterface):
     def __init__(self):
         super().__init__()
         self._frame_delivered = threading.Event()
-        self._ids.Library.Initialize()
+        ids = ids.Library.Initialize()
 
     def reconnect(self, idx=0) -> bool:
         try:
-            device_manager = self._ids.DeviceManager.Instance()
+            device_manager = ids.DeviceManager.Instance()
             device_manager.Update()
             device_descriptors = device_manager.Devices()
             for device_descriptor in device_descriptors:
                 print(device_descriptor.DisplayName())
             self._idscam = device_manager.Devices()[idx].OpenDevice(
-                self._ids.DeviceAccessType_Control
+                ids.DeviceAccessType_Control
             )
             return True
         except Exception as e:
@@ -75,7 +74,7 @@ class IDSU33080(CameraInterface):
         self._datastream.FlushQueue()
         self._datastream.DiscardAllBuffers()
         self._idscam.CloseDevice()
-        self._ids.Library.Terminate()
+        ids.Library.Terminate()
 
     def pause_video(self) -> None:
         self._rdn.FindNode("AcquisitionStop").Execute()

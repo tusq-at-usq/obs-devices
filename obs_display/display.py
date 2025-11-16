@@ -458,12 +458,13 @@ class Display:
                         ).strftime("%H:%M:%S.%f")[:-5],
                     }
                     if self._target is not None:
-                        try:
+                        # try:
+                        if True:
                             hp = self._target.get_head_pitch(frame.timestamp)
                             lab_data["TAR"] = f"Head {hp[0]:.2f} Pitch {hp[1]:.2f}"
-                        except Exception as e:
-                            warnings.warn(f"Could not get target data: {e}")
-                            pass
+                        # except Exception as e:
+                        #     warnings.warn(f"Could not get target data: {e}")
+                        #     pass
                     if self._ctx.has_imu_monitor:
                         try:
                             # euler = self._state.extrap_imu_state(frame.timestamp).hpr
@@ -471,8 +472,8 @@ class Display:
                             lab_data["IMU"] = (
                                 f"Head {euler[0]:.2f} Pitch {euler[1]:.2f}"
                             )
-                            # if self._target is not None:
-                            #     self.update_tracking(self._target, frame.timestamp, np.array(euler))
+                            if self._target is not None:
+                                self.update_tracking(self._target, frame.timestamp, np.array(euler))
                         except Exception as e:
                             warnings.warn(f"Could not get IMU data: {e}")
                             try:

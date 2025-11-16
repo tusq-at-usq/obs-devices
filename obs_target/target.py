@@ -140,7 +140,7 @@ class PathTarget(Target):
             hpr: ArrayLike of heading, pitch, and roll in degrees.
         """
         time = at.Time(t_unix, backend=jnp)
-        return self._ray_ned.convert_to(jnp).interp(time, check_bounds=False).az_el
+        return self._ray_ned.convert_to(jnp).interp(time, check_bounds=False).az_el[0]
 
     def get_head_pitch(self, t_unix: float) -> NDArray:
         start_in_bounds, end_in_bounds = self.check_time_bounds(t_unix)

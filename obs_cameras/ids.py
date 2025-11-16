@@ -67,8 +67,15 @@ class IDSU33080(CameraInterface):
         self.set_exposure(self.EXP_DEFAULT)
         self.set_gain(self.GAIN_DEFAULT)
         self.start_video()
-
         return self
+
+    def __exit__(self, exc_type, exc_value, traceback) -> None:
+        self._rdn.FindNode("AcquisitionStop").Execute()
+        self._datastream.StopAcquisition()
+        self._datastream.FlushQueue()
+        self._datastream.DiscardAllBuffers()
+        self._idscam.CloseDevice()
+        self._ids.Library.Terminate()
 
     def pause_video(self) -> None:
         self._rdn.FindNode("AcquisitionStop").Execute()

@@ -404,6 +404,7 @@ class GimbPIController(threading.Thread):
         super().__init__()
         self.Kp = 1.0
         self.Ki = 0.05
+        self.int_limit = 10.0
         self.deadband = 0.1
         self.integral_error = np.zeros(2)
         self._target = target
@@ -437,6 +438,9 @@ class GimbPIController(threading.Thread):
         error[np.abs(error) < self.deadband] = 0.0
         dt = t_imu - self._prev_t
         self.integral_error += error * dt
+        self.integral_error = np.clip(
+            self.integral_error, -self.int_limit, self.int_limit
+        )
         control_output = self.Kp * error + self.Ki * self.integral_error
         self._prev_t = t_imu
         return {

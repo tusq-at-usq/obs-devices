@@ -10,15 +10,12 @@ sudo ~/VimbaX/cti/Install_GenTL_Path.sh
 
 # ZWO install
 sudo apt update
-mkdir -p "$SCRIPT_DIR"../obs_cameras/asets
-cd "$SCRIPT_DIR"../obs_cameras/asets
-
-mkdir -p .assets
-cd .assets
+mkdir -p "$SCRIPT_DIR"/../obs_cameras/assets
+cd "$SCRIPT_DIR"/../obs_cameras/assets
 curl -LO https://github.com/tusq-at-usq/obs-utils/releases/download/v0.1.0/ASI_linux_mac_SDK_V1.39.tar.bz2
 tar -xf ./ASI_linux_mac_SDK_V1.39.tar.bz2
-sudo install .ASI_linux_mac_SDK_V1.39/lib/asi.rules /etc/udev/rules.d
-cp .ASI_linux_mac_SDK_V1.39/lib/x64/libASICamera2.so ./
+sudo install ./ASI_linux_mac_SDK_V1.39/lib/asi.rules /etc/udev/rules.d
+cp ./ASI_linux_mac_SDK_V1.39/lib/x64/libASICamera2.so ./
 sudo udevadm control --reload-rules
 sudo udevadm trigger
 

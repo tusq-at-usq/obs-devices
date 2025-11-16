@@ -8,15 +8,15 @@ class Alvium811(CameraInterface):
     NAME = "Alvium_811"
     MODEL_NO = "811"
     FRAME_RES = (2848, 2848)
-    DTYPE = "uint8"
-    GAIN_DEFAULT = 1
-    EXP_DEFAULT = 20e3
+    dtype = "uint8"
+    gain_default = 1
+    exp_default = 20e3
 
     _vmb: vmbpy.VmbSystem
     _vmbcam: vmbpy.Camera
     cam_id: str | None
     _frame: vmbpy.Frame
-    _frame_delivered = threading.Event
+    _frame_delivered: threading.Event
 
     _limits = {}
 
@@ -137,11 +137,12 @@ class Alvium811(CameraInterface):
         timestamp = time.time()
         self._vmbcam.TriggerSoftware.run()
         if self._frame_delivered.wait(timeout=2.0):
+            actual_time = timestamp + (self.exposure / 2) / 1e6
             frame = Frame(
                 pixels=self._frame,
                 gain=gain,
                 exposure=exposure,
-                timestamp=timestamp,
+                timestamp=actual_time,
                 cam_name=self.name,
             )
             return frame

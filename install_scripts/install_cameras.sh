@@ -1,7 +1,31 @@
 
+CWD="$(pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Alvium install
 curl -L "https://downloads.alliedvision.com/VimbaX/VimbaX_Setup-2025-3-Linux64.tar.gz" -o "$HOME/Downloads/VimbaX_Setup-2025-3-Linux64.tar.gz"
 mkdir -p ~/VimbaX
 tar -xf ~/Downloads/VimbaX_Setup-2025-3-Linux64.tar.gz -C ~/VimbaX --strip-components=1
 sudo ~/VimbaX/cti/Install_GenTL_Path.sh
+
+# ZWO install
+sudo apt update
+mkdir -p "$SCRIPT_DIR"../obs_cameras/asets
+cd "$SCRIPT_DIR"../obs_cameras/asets
+
+mkdir -p .assets
+cd .assets
+curl -LO https://github.com/tusq-at-usq/obs-utils/releases/download/v0.1.0/ASI_Camera_SDK.zip
+unzip -xf ASI_Camera_SDK.zip
+tar -xf .ASI_Camera_SDK/ASI_linux_mac_SDK_V1.39.tar.bz2
+sudo install .ASI_Camera_SDK/ASI_linux_mac_SDK_V1.39/lib/asi.rules /etc/udev/rules.d
+cp .ASI_Camera_SDK/ASI_linux_mac_SDK_V1.39/lib/x64/libASICamera2.so ./
+sudo udevadm control --reload-rules
+sudo udevadm trigger
+
+rm -rf .ASI_Camera_SDK.zip .ASI_Camera_SDK
+cd "$CWD"
+
+
 
 echo "Camera installation complete."

@@ -13,6 +13,7 @@ class IDSU33080(CameraInterface):
     NAME = "IDS-U33080"
     MODEL_NO = "U33080"
     FRAME_RES = (2448, 2048)
+    SENSOR_SIZE = (8.473, 7.086)  # in meters
     DTYPE = "uint12"
     GAIN_DEFAULT = 1
     EXP_DEFAULT = 20e3

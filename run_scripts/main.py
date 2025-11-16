@@ -1,6 +1,7 @@
 import time
 
 from obs_cameras.alvium import Alvium811, Alvium508
+from obs_cameras.ids import IDSU33080
 from obs_cameras.zwo import ASI585
 from obs_cameras.base import CameraStream
 from obs_display.display import Display
@@ -27,23 +28,20 @@ def main():
     # )
     # pt_GS2 = at.Point.from_geodet([-32.150517, 133.689040, 10])
     pt_Bledisloe = at.Point.from_geodet([-27.511726, 153.0249, 10])
-    alv811_25_mod = at.FixedZoomCamera(
-        (2848, 2848), (2.74 * 1e-3 * 2848, 2.74 * 1e-3 * 2848), 21
-    )
 
-    alv_stream = CameraStream("test-cam", ASI585(), "~/test_cam_data", alv811_25_mod)
-
+    ids_stream = CameraStream("ids-cam", IDSU33080() , "~/test_cam_data", 50)
+    asi_stream = CameraStream("asi-cam", ASI585(), "~/asi_cam_data", 25)
 
     # Instantiate state and monitors
     state = State()
     # state_plotter = StatePlotter(state=state, interval=0.5)
-    target = SkyTarget("Canopus", pt_Bledisloe, alv811_25_mod)
+    target = SkyTarget("Canopus", pt_Bledisloe, ids_stream.cam_mdl)
     gimbal_controller = GimbalController(target, sink=state.set_gimbal_state)
     imu_monitor = CertusMonitor(
         sink=[state.set_imu_state, gimbal_controller.set_imu_state]
     )
-    # context = Context(streams=[alv_stream], imu_monitor=imu_monitor, controller=gimbal_controller)
-    context = Context(streams=[alv_stream])
+    context = Context(streams=[ids_stream, asi_stream], imu_monitor=imu_monitor, controller=gimbal_controller)
+    # context = Context(streams=[alv_stream])
     display = Display(context, state, target)
     cli = ObsCLI(context, state, display)
 

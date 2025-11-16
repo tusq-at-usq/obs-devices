@@ -8,6 +8,7 @@ class Alvium811(CameraInterface):
     NAME = "Alvium_811"
     MODEL_NO = "811"
     FRAME_RES = (2848, 2848)
+    SENSOR_SIZE = (2848*2.74*1e-3, 2848*2.74*1e-3)
     dtype = "uint8"
     gain_default = 1
     exp_default = 20e3
@@ -205,3 +206,4 @@ class Alvium508(Alvium811):
     NAME = "Alvium_508"
     MODEL_NO = "508"
     FRAME_RES = (2464, 2056)
+    SENSOR_SIZE = (2464*3.45*1e-3, 2056*3.45*1e-3)

@@ -50,6 +50,7 @@ class CameraInterface(ABC):
     # Class attributes that must be defined by derived classes
 
     FRAME_RES: Tuple[int, int]
+    SENSOR_SIZE: Tuple[float, float]
     DTYPE: str = "uint8"  # Data type of the image data
     _gain_set: float | str = 0.0
     _exposure_set: float = 0.0
@@ -343,6 +344,16 @@ class CameraInterface(ABC):
         return self.FRAME_RES
 
     @property
+    def sensor_size(self) -> Tuple[float, float]:
+        """
+        Get the camera sensor size.
+
+        Returns:
+            tuple: Camera sensor size as (width_mm, height_mm)
+        """
+        return self.SENSOR_SIZE
+
+    @property
     def dtype(self) -> str:
         """
         Get the data type of the image data.
@@ -386,7 +397,7 @@ class CameraStream:
         name: str,
         cam_ifc: CameraInterface,
         save_root_dir: str,
-        cam_mdl: FixedZoomCamera | None = None,
+        foc_len_mm: float | None = None,
     ):
         """
         Initialise a threaded camera stream manager.
@@ -398,7 +409,14 @@ class CameraStream:
 
         self.name = name
         self._cam = cam_ifc
-        self._cam_mdl = cam_mdl
+        if foc_len_mm is not None:
+            self.cam_mdl = FixedZoomCamera(
+                res=self._cam.frame_res,
+                sensor_size=self._cam.sensor_size,
+                focal_length=foc_len_mm,
+            )
+        else:
+            self.cam_mdl = None
 
         self.save_root_dir = pathlib.Path(save_root_dir).expanduser()
         self.save_dir = os.path.join(

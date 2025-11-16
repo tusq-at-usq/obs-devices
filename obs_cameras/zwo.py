@@ -16,6 +16,7 @@ class ASI585(CameraInterface):
     NAME = "ASI585"
     MODEL_NO = "585"
     FRAME_RES = 3840, 2160
+    SENSOR_SIZE = (11.136, 6.264)
     USB_TRANSFER_TIME: float = 0.001  # Estimated USB transfer time in seconds (1ms)
     DTYPE = "uint8"
     GAIN_DEFAULT = 5

@@ -94,6 +94,7 @@ class ObsCLI(threading.Thread):
                     line = inp.split(" ")
                     if line[1].isdigit():
                         self._ctx.change_display_stream(int(line[1]))
+                        self._display.signal_new_stream()
                     else:
                         print("Could not change streams. Enter digit of stream")
 

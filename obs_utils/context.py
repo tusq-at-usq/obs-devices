@@ -142,7 +142,6 @@ class Context:
             if i < 0 or i >= len(self._streams):
                 raise ValueError("Invalid stream index")
             self._disp_stream_idx = i
-            # toggle display update
 
     def __exit__(self, exc_type, exc_value, traceback) -> None:
         self._stack.__exit__(exc_type, exc_value, traceback)

@@ -70,7 +70,6 @@ class CameraInterface(ABC):
         self._frame_count = 0
         self._frame_rate_window = 20
 
-
     @property
     @abstractmethod
     def name(self) -> str: ...
@@ -427,7 +426,8 @@ class CameraStream:
         self._save_enabled = False
 
         # Threads
-        self._save_queue = queue.Queue()
+        # TODO: Add limit to queue
+        self._save_queue = queue.Queue(maxsize=500)
 
         # Frame counter for saving
         self.frame_count = 0
@@ -458,8 +458,8 @@ class CameraStream:
 
         if self.frame_available_event.wait(timeout=1):
             with self._frame_lock:
-                    return self._latest_frame
-                    self.frame_available_event.clear()
+                return self._latest_frame
+                self.frame_available_event.clear()
         else:
             return None
 
@@ -503,7 +503,21 @@ class CameraStream:
 
                 # Queue frame for saving if enabled
                 if self._save_enabled:
-                    self._save_queue.put((frame, self._frame_count))
+                    try:
+                        self._save_queue.put((frame, self._frame_count), block=False)
+                    except queue.Full:
+                        try:
+                            old_frame, _ = self._save_queue.get_nowait()
+                            delta_t = frame.timestamp - old_frame.timestamp
+                            print(
+                                f"Warning: Save queue full, dropping frame from {delta_t:.2f}s ago"
+                            )
+                        except queue.Empty:
+                            continue  # Should not happen, but just in case
+                        try:
+                            self._save_queue.put((frame, self._frame_count))
+                        except queue.Full:
+                            pass  # Give up on this frame
                     self._frame_count += 1
 
             except Exception as e:
@@ -522,7 +536,9 @@ class CameraStream:
                 try:
                     # Get frame from save queue
                     frame, frame_num = self._save_queue.get(timeout=1.0)
-                    pix = frame.pixels.view(frame.pixels.dtype.type)  # Remove metadata view
+                    pix = frame.pixels.view(
+                        frame.pixels.dtype.type
+                    )  # Remove metadata view
                     save_metadata = {
                         "timestamp": frame.timestamp,
                         "time_string": datetime.datetime.fromtimestamp(
@@ -590,5 +606,3 @@ class CameraStream:
                 self._save_killswitch.set()
                 t.join()
                 self._save_thread = None
-
-

@@ -9,3 +9,5 @@
 cpp/certus/stream_packets
 
 build/**
+
+obs_cameras/assets/**

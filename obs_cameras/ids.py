@@ -12,7 +12,7 @@ from obs_cameras.base import CameraInterface, Frame
 class IDSU33080(CameraInterface):
     NAME = "IDS-U33080"
     MODEL_NO = "U33080"
-    FRAME_RES = (2448, 2048)
+    FRAME_RES = (2464, 2056)
     SENSOR_SIZE = (8.473, 7.086)  # in meters
     DTYPE = "uint12"
     GAIN_DEFAULT = 1

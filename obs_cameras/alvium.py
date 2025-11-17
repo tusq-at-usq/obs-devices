@@ -1,6 +1,7 @@
 import time
 import vmbpy
 import threading
+import warnings
 from .base import CameraInterface, Frame
 
 
@@ -43,14 +44,14 @@ class Alvium811(CameraInterface):
                     if self.MODEL_NO in cam_dict[cam]["Model"]
                 ][0]
             except IndexError:
-                raise RuntimeError(f"No Alvium {self.MODEL_NO} camera found.")
+                warnings.warn(f"No Alvium {self.MODEL_NO} camera found.")
         else:
             try:
                 vmbcam = [
                     cam for cam in cam_dict.keys() if self.cam_id in cam_dict[cam]["ID"]
                 ][0]
             except IndexError:
-                raise RuntimeError(f"Camera with ID {self.cam_id} not found.")
+                warnings.warn(f"Camera with ID {self.cam_id} not found.")
         if vmbcam is not None:
             self._vmbcam = vmbcam
             self.cam_id = cam_dict[vmbcam]["ID"]
@@ -73,7 +74,7 @@ class Alvium811(CameraInterface):
         time.sleep(0.1)
 
         self.reconnect()
-        if self._vmbcam is not None:
+        if hasattr(self, "_vmbcam"):
             self._vmbcam.__enter__()
         else:
             self.__exit__(None, None, None)
@@ -96,7 +97,7 @@ class Alvium811(CameraInterface):
 
     def __exit__(self, exc_type, exc_val, exc_tb) -> None:
         """Exit the runtime context related to this object."""
-        if self._vmbcam is not None:
+        if hasattr(self, "_vmbcam"):
             self._vmbcam.stop_streaming()
             self._vmbcam.TriggerMode.set("Off")
             self._vmbcam.AcquisitionMode.set("SingleFrame")

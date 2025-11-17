@@ -2,6 +2,7 @@ import time
 import vmbpy
 import threading
 import warnings
+import cv2
 from .base import CameraInterface, Frame
 
 
@@ -10,9 +11,9 @@ class Alvium811(CameraInterface):
     MODEL_NO = "811"
     FRAME_RES = (2848, 2848)
     SENSOR_SIZE = (2848*2.74*1e-3, 2848*2.74*1e-3)
-    dtype = "uint8"
-    gain_default = 1
-    exp_default = 20e3
+    DTYPE = "uint8"
+    GAIN_DEFAULT = 1
+    EXP_DEFAULT = 20e3
 
     _vmb: vmbpy.VmbSystem
     _vmbcam: vmbpy.Camera
@@ -200,6 +201,15 @@ class Alvium811(CameraInterface):
             if not self._limits["gain"][0] <= gain <= self._limits["gain"][1]:
                 print("Clipping gain to valid range.")
             gain = max(self._limits["gain"][0], min(self._limits["gain"][1], gain))
+
+    def convert_for_monitoring(self, frame: Frame) -> Frame:
+        # Convert to 8-bit grayscale for monitoring
+        pix = frame.pixels
+        # pix = (frame.pixels / 2**4).astype("uint8")
+        # pix = cv2.resize(converted_frame, (self.DISPLAY_RES[1], self.DISPLAY_RES[0]))
+        # pix = cv2.flip(pix, 1)
+        pix = cv2.rotate(pix, cv2.ROTATE_90_CLOCKWISE)
+        return Frame(pix, frame.gain, frame.exposure, frame.timestamp, frame.cam_name)
         self._vmbcam.Gain.set(gain)
 
 
@@ -208,3 +218,5 @@ class Alvium508(Alvium811):
     MODEL_NO = "508"
     FRAME_RES = (2464, 2056)
     SENSOR_SIZE = (2464*3.45*1e-3, 2056*3.45*1e-3)
+
+
